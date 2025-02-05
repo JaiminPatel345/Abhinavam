@@ -1,10 +1,13 @@
 {
   "name": "kalavithi",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
+  "types": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "serve": "node dist/server.js",
+    "dev": "nodemon -r tsconfig-paths/register src/server.ts"
   },
   "keywords": [],
   "author": "Jaimin Detroja",
@@ -12,13 +15,26 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.8",
+    "@types/mongoose": "^5.11.97",
+    "@types/nodemailer": "^6.4.17",
     "bcrpyt": "^2.0.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
+    "expo": "^52.0.30",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.6",
     "nodemailer": "^6.10.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }

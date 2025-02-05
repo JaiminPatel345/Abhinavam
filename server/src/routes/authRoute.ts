@@ -1,6 +1,7 @@
 import express from "express";
-const router = express.Router();
 import authController from '../controllers/authController.js';
+
+const router = express.Router();
 
 router.post("/register", authController.registerUser);
 router.post("/verify-email", authController.validateOtp);
