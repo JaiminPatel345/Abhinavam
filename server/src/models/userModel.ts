@@ -1,8 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose, {Model} from 'mongoose';
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
+import {IUser} from "../types/user.types.js";
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema<IUser>({
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -49,17 +50,21 @@ const UserSchema = new mongoose.Schema({
       'Please enter a valid mobile number with country code (e.g., +1234567890)',
     ],
   },
-interests: {
+  about: {
+    type: String,
+    required: [true, 'About is required'],
+  },
+  interests: {
     type: [String],
     validate: {
       validator: function(interests) {
         // Allow empty array
         if (interests.length === 0) return true;
-        return interests.every(interest => INTERESTS.includes(interest));
+        return interests.every((interest:string) => INTERESTS.includes(interest));
       },
-      message: props => `${props.value} contains invalid interests`
+      message: props => `${props.value} contains invalid interests`,
     },
-    default: [] // Changed default to empty array
+    default: [], // Changed default to empty array
   },
   profession: {
     type: [String],
@@ -67,11 +72,11 @@ interests: {
       validator: function(professions) {
         // Allow empty array
         if (professions.length === 0) return true;
-        return professions.every(profession => PROFESSIONS.includes(profession));
+        return professions.every((profession:string) => PROFESSIONS.includes(profession));
       },
-      message: props => `${props.value} contains invalid professions`
+      message: props => `${props.value} contains invalid professions`,
     },
-    default: [] // Changed default to empty array
+    default: [], // Changed default to empty array
   },
   isEmailVerified: {
     type: Boolean,
@@ -94,14 +99,14 @@ interests: {
     enum: ['active', 'inactive', 'suspended'],
     default: 'active',
   },
-  loginAttempts: {
-    type: Number,
-    default: 0,
-  },
-  accountLockUntil: {
-    type: Date,
-    default: null,
-  },
+  // loginAttempts: {
+  //   type: Number,
+  //   default: 0,
+  // },
+  // accountLockUntil: {
+  //   type: Date,
+  //   default: null,
+  // },
 }, {
   timestamps: true, // Adds createdAt and updatedAt fields
   toJSON: {
@@ -112,7 +117,6 @@ interests: {
     },
   },
 });
-
 
 // Add instance methods if needed
 // UserSchema.methods.incrementLoginAttempts = function() {
@@ -129,6 +133,6 @@ interests: {
 //   return this.save();
 // };
 
-const User = mongoose.model('User', UserSchema);
+const User:Model<IUser> = mongoose.model('User', UserSchema);
 
 export default User;
