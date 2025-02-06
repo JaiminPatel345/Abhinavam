@@ -2,7 +2,7 @@ import User from '../models/userModel.js';
 import {getEmailAndOtp, removeEmailAndOtp, setEmailAndOtp,} from '../redis/redisUtils.js';
 import generateOtp from "../utils/userUtils/generateOtp.js";
 import sendMail from "../utils/userUtils/sendMail.js";
-import setCookies, {clearCookies} from "../utils/userUtils/setCookies.js";
+import setCookies from "../utils/userUtils/getJwtToken.js";
 import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
 import {
     IUser,
@@ -143,20 +143,23 @@ const validateUser: ValidateUserController = async (req, res) => {
         .then((user: IUser) => {
 
             // Set JWT in HTTP-only cookie
-            setCookies(res, user);
+            const token = setCookies(res, user);
 
             // Return user data (excluding sensitive information)
             res.json({
                 success: true, message: 'Login successful', user: <IUserResponse>{
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    username: user.username,
-                    about: user.about,
-                    interest: user.interests,
-                    profession: user.profession,
-                    isEmailVerified: user.isEmailVerified,
-                    isMobileVerified: user.isMobileVerified,
+                    user: {
+                        id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        username: user.username,
+                        about: user.about,
+                        interest: user.interests,
+                        profession: user.profession,
+                        isEmailVerified: user.isEmailVerified,
+                        isMobileVerified: user.isMobileVerified,
+                    },
+                    token
                 }
             });
         })
@@ -172,7 +175,6 @@ const validateUser: ValidateUserController = async (req, res) => {
 };
 
 const logoutUser: LogoutUserController = (req, res) => {
-    clearCookies(res)
     res.json({
         success: true, message: 'Logged out successfully'
     });

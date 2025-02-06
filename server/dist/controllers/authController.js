@@ -11,7 +11,7 @@ import User from '../models/userModel.js';
 import { getEmailAndOtp, removeEmailAndOtp, setEmailAndOtp, } from '../redis/redisUtils.js';
 import generateOtp from "../utils/userUtils/generateOtp.js";
 import sendMail from "../utils/userUtils/sendMail.js";
-import setCookies, { clearCookies } from "../utils/userUtils/setCookies.js";
+import setCookies from "../utils/userUtils/getJwtToken.js";
 import { encryptPassword, validatePassword } from "../utils/userUtils/passwordEncryption.js";
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, username, email, password, mobile, interest, profession, about } = req.body;
@@ -121,19 +121,22 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     })
         .then((user) => {
         // Set JWT in HTTP-only cookie
-        setCookies(res, user);
+        const token = setCookies(res, user);
         // Return user data (excluding sensitive information)
         res.json({
             success: true, message: 'Login successful', user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                username: user.username,
-                about: user.about,
-                interest: user.interests,
-                profession: user.profession,
-                isEmailVerified: user.isEmailVerified,
-                isMobileVerified: user.isMobileVerified,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    username: user.username,
+                    about: user.about,
+                    interest: user.interests,
+                    profession: user.profession,
+                    isEmailVerified: user.isEmailVerified,
+                    isMobileVerified: user.isMobileVerified,
+                },
+                token
             }
         });
     })
@@ -147,7 +150,6 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     });
 });
 const logoutUser = (req, res) => {
-    clearCookies(res);
     res.json({
         success: true, message: 'Logged out successfully'
     });
