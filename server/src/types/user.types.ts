@@ -28,15 +28,18 @@ export interface IUser {
 }
 
 export interface IUserResponse {
-    id: string;
-    name: string;
-    email: string;
-    username: string;
-    about: string;
-    interest: string[];
-    profession: string[];
-    isEmailVerified: boolean;
-    isMobileVerified: boolean;
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        username: string;
+        about: string;
+        interest: string[];
+        profession: string[];
+        isEmailVerified: boolean;
+        isMobileVerified: boolean;
+    },
+    token: string;
 }
 
 export interface IRegisterUserRequest {
@@ -64,6 +67,14 @@ export interface IApiResponse<T = any> {
     success: boolean;
     message: string;
     user?: T;
+}
+
+export interface IJwtPayload {
+    userId: string,
+    email: string,
+    username: string,
+    mobile?: string,
+    isMobileVerified?: boolean,
 }
 
 // Controller types
