@@ -78,7 +78,26 @@ module.exports = {
           light: '#F4EDD3', // Beige (Light Mode Post Heading)
         },
       },
+
+      boxShadow: {
+        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+      },
+      borderRadius: {
+        'xs': '0.125rem',
+        'sm': '0.25rem',
+        'md': '0.375rem',
+        'lg': '0.5rem',
+        'xl': '0.75rem',
+        '2xl': '1rem',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
     },
+
   },
   plugins: [],
 };
