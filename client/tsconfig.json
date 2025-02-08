@@ -9,6 +9,12 @@
       ],
       "@css/*": [
         "./src/css/*"
+      ],
+      "@redux/*": [
+        "./src/redux/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
       ]
     }
   },
