@@ -62,7 +62,7 @@ export default function LoginScreen() {
           </Formik>
           <View>
             <Text>User: {user ? user.email : 'No user'}</Text>
-            <Text>{isLoading ? 'USer found' : 'Loading'}</Text>
+            <Text>{isLoading ? 'Loading' : 'no Loading'}</Text>
             <Text>{error}</Text>
           </View>
         </View>

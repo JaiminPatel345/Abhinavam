@@ -138,7 +138,7 @@ const validateUser: ValidateUserController = async (req, res) => {
             }
 
             // Compare password
-            return validatePassword(password, user)
+            return validatePassword(password, user , isEmail)
         })
         .then((user: IUser) => {
 
@@ -147,7 +147,7 @@ const validateUser: ValidateUserController = async (req, res) => {
 
             // Return user data (excluding sensitive information)
             res.json({
-                success: true, message: 'Login successful', user: <IUserResponse>{
+                success: true, message: 'Login successful', data: <IUserResponse>{
                     user: {
                         id: user._id,
                         name: user.name,
