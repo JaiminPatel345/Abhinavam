@@ -12,11 +12,11 @@ const SALT_ROUNDS = 10;
 export const encryptPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
     return bcrypt.hash(password, SALT_ROUNDS);
 });
-export const validatePassword = (password, user) => __awaiter(void 0, void 0, void 0, function* () {
+export const validatePassword = (password, user, isEmail) => __awaiter(void 0, void 0, void 0, function* () {
     const isMatch = yield bcrypt.compare(password, user.password);
     if (!isMatch) {
         throw {
-            status: 401, message: 'Invalid password'
+            status: 401, message: `Invalid ${isEmail ? 'Email' : 'Username'} or Password`
         };
     }
     return user;

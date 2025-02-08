@@ -117,14 +117,14 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             };
         }
         // Compare password
-        return validatePassword(password, user);
+        return validatePassword(password, user, isEmail);
     })
         .then((user) => {
         // Set JWT in HTTP-only cookie
         const token = setCookies(res, user);
         // Return user data (excluding sensitive information)
         res.json({
-            success: true, message: 'Login successful', user: {
+            success: true, message: 'Login successful', data: {
                 user: {
                     id: user._id,
                     name: user.name,
