@@ -50,7 +50,7 @@ const UserSchema = new mongoose.Schema({
     },
     about: {
         type: String,
-        required: [true, 'About is required'],
+        default: '',
     },
     interests: {
         type: [String],
@@ -88,7 +88,7 @@ const UserSchema = new mongoose.Schema({
     },
     avatar: {
         type: String,
-        default: null,
+        default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
     },
     lastLogin: {
         type: Date,

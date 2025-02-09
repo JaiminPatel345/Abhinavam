@@ -14,40 +14,51 @@ import sendMail from "../utils/userUtils/sendMail.js";
 import setCookies from "../utils/userUtils/getJwtToken.js";
 import { encryptPassword, validatePassword } from "../utils/userUtils/passwordEncryption.js";
 const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, username, email, password, mobile, interest, profession, about } = req.body;
-    // Hash password before saving
-    return encryptPassword(password)
-        .then(hashedPassword => {
-        const newUser = new User({
+    try {
+        const { name, username, email, password, mobile } = req.body;
+        // Check existing email
+        const existingEmail = yield User.findOne({ email });
+        if (existingEmail) {
+            return res.status(401).json({
+                success: false,
+                message: `User already exists for ${email}!`
+            });
+        }
+        // Check existing mobile
+        const existingMobile = yield User.findOne({ mobile });
+        if (existingMobile) {
+            return res.status(401).json({
+                success: false,
+                message: `User already exists with this mobile number!`
+            });
+        }
+        // Hash password and create user
+        const hashedPassword = yield encryptPassword(password);
+        const newUser = yield User.create({
             name,
             username,
             email,
-            about,
             password: hashedPassword,
             mobile,
-            interest,
-            profession
         });
-        return newUser.save();
-    })
-        .then(savedUser => {
+        // Generate and send OTP
         const generatedOtp = generateOtp();
-        console.log("Generated OTP: ", generatedOtp);
-        return Promise.all([sendMail(email, generatedOtp), setEmailAndOtp(email, generatedOtp)]);
-    })
-        .then(() => {
-        res.status(201).json({
-            success: true, message: 'User registered successfully. Please verify OTP.'
+        yield Promise.all([
+            sendMail(email, generatedOtp),
+            setEmailAndOtp(email, generatedOtp, '10m') // Add expiration time
+        ]);
+        return res.status(201).json({
+            success: true,
+            message: 'User registered successfully. Please verify OTP.'
         });
-    })
-        .catch(error => {
+    }
+    catch (error) {
         console.error('Error in registering user:', error);
-        const statusCode = error.status || 500;
-        const errorMessage = error.message || 'Error during registration';
-        res.status(statusCode).json({
-            success: false, message: errorMessage
+        return res.status(500).json({
+            success: false,
+            message: 'Error during registration'
         });
-    });
+    }
 });
 const validateOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, givenOtp } = req.body;
