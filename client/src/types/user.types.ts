@@ -26,3 +26,30 @@ export interface ILoginCredentials{
     email: string;
     password: string;
 }
+
+
+export interface SignupFormData {
+  name: string;
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface AdditionalDetailsData {
+  mobile?: string;
+  interests: string[];
+  profession: string[];
+  about: string;
+}
+
+export interface SelectionModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+  title: string;
+  items: string[];
+  searchValue: string;
+  onSearchChange: (text: string) => void;
+  selectedItems: string[];
+  onItemSelect: (item: string) => void;
+}
