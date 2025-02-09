@@ -10,6 +10,7 @@ export default function HomeScreen() {
                 <Text className={'text-rose-800'}>Hello</Text>
                 <Link href="/auth/login" className={'text-blue-600'}>Go to Login </Link>
                 <Link href="/auth/signup" className={'text-blue-600'}>Go to signup </Link>
+                <Link href="/auth/signup/AdditionalDetails" className={'text-blue-600'}>Go to additional  details </Link>
             </SafeAreaView>
         </>
 
