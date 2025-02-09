@@ -6,6 +6,7 @@ import { Formik } from "formik";
 import validationLoginSchema from "@/app/auth/login/validationLoginSchema";
 import useAuth from "@/hooks/useAuth";
 import { Lock, Mail } from 'lucide-react-native';
+import {Link} from "expo-router";
 
 export default function LoginScreen() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
@@ -129,9 +130,9 @@ export default function LoginScreen() {
                   Don't have an account?{' '}
                 </Text>
                 <TouchableOpacity>
-                  <Text className="text-primary font-psemibold">
+                  <Link href={'/auth/signup'} className="text-primary font-psemibold">
                     Sign Up
-                  </Text>
+                  </Link>
                 </TouchableOpacity>
               </View>
             </View>

@@ -9,6 +9,7 @@ export default function HomeScreen() {
             <SafeAreaView style={{paddingLeft: 5}}>
                 <Text className={'text-rose-800'}>Hello</Text>
                 <Link href="/auth/login" className={'text-blue-600'}>Go to Login </Link>
+                <Link href="/auth/signup" className={'text-blue-600'}>Go to signup </Link>
             </SafeAreaView>
         </>
 
