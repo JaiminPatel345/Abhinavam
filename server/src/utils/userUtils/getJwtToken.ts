@@ -1,16 +1,15 @@
-import jwt from "jsonwebtoken";
-import {IJwtPayload, IUser} from "../../types/user.types.js";
-import {Response} from "express";
+import jwt from 'jsonwebtoken';
+import { IUser } from '../../types/user.types.js';
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
+const generateToken = (user: IUser): string => {
+  return jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET as string,
+    { expiresIn: '30d' }
+  );
+};
 
-const getJwtToken = (res: Response, user: IUser) => {
-    return jwt.sign(
-        {userId: user._id, email: user.email, username: user.username} as IJwtPayload,
-        JWT_SECRET,
-        // { expiresIn: '1y' }
-    );
-
-}
-
-export default getJwtToken;
+export const setCookies = (user: IUser): string => {
+  const token = generateToken(user);
+  return token;
+};

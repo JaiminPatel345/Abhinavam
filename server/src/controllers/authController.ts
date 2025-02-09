@@ -1,183 +1,231 @@
+// authController.ts
+import { Request, Response } from 'express';
 import User from '../models/userModel.js';
-import {getEmailAndOtp, removeEmailAndOtp, setEmailAndOtp,} from '../redis/redisUtils.js';
+import {
+  getEmailAndOtp,
+  removeEmailAndOtp,
+  setEmailAndOtp,
+  incrementWrongAttempts
+} from '../redis/redisUtils.js';
 import generateOtp from "../utils/userUtils/generateOtp.js";
 import sendMail from "../utils/userUtils/sendMail.js";
-import setCookies from "../utils/userUtils/getJwtToken.js";
-import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
-import {
-    IUser,
-    IUserResponse,
-    LogoutUserController,
-    RegisterUserController,
-    ValidateOtpController,
-    ValidateUserController
-} from '../types/user.types.js';
-import {IRedisOtpData} from '../types/redis.types.js';
+import {setCookies} from "../utils/userUtils/getJwtToken.js";
+import { encryptPassword, validatePassword } from "../utils/userUtils/passwordEncryption.js";
+import { uploadToCloudinary } from '../utils/cloudinary.js';
+import { AppError, formatResponse } from '../utils/helpers.js';
+import {LogoutUserController, ValidateUserController} from "../types/user.types.js";
 
+// Stage 1: Initial Registration
+const initiateRegistration = async (req: Request, res: Response) => {
+  try {
+    const { name, username, mobile, password } = req.body;
 
-const registerUser: RegisterUserController = async (req, res) => {
-    const {
-        name, username, email, password, mobile, interest, profession, about
-    } = req.body;
-
-    // Hash password before saving
-    return encryptPassword(password)
-        .then(hashedPassword => {
-            const newUser = new User({
-                name,
-                username,
-                email,
-                about,
-                password: hashedPassword,
-                mobile,
-                interest,
-                profession
-            });
-            return newUser.save();
-        })
-        .then(savedUser => {
-            const generatedOtp = generateOtp();
-            console.log("Generated OTP: ", generatedOtp);
-
-            return Promise.all(
-                [sendMail(email, generatedOtp), setEmailAndOtp(email, generatedOtp)]);
-        })
-        .then(() => {
-            res.status(201).json({
-                success: true, message: 'User registered successfully. Please verify OTP.'
-            });
-        })
-        .catch(error => {
-            console.error('Error in registering user:', error);
-            const statusCode = error.status || 500;
-            const errorMessage = error.message || 'Error during registration';
-
-            res.status(statusCode).json({
-                success: false, message: errorMessage
-            });
-        });
-};
-
-const validateOtp: ValidateOtpController = async (req, res) => {
-    const {email, givenOtp} = req.body;
-
-    getEmailAndOtp(email)
-        .then((redisData: IRedisOtpData | null) => {
-            if (!redisData) {
-                throw {
-                    status: 400, message: 'OTP has expired'
-                };
-            }
-
-            if (redisData.generatedOtp !== givenOtp) {
-                throw {
-                    status: 400, message: 'Invalid OTP'
-                };
-            }
-
-            // If OTP is valid, find and update user
-            return User.findOneAndUpdate({email}, {isEmailVerified: true}, {new: true});
-        })
-        .then((user: IUser | null) => {
-            if (!user) {
-                throw {
-                    status: 404, message: 'User not found'
-                };
-            }
-
-            setCookies(res, user);
-            removeEmailAndOtp(email)
-
-            res.json({
-                success: true, message: 'OTP verified successfully', user: {
-                    id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    isEmailVerified: user.isEmailVerified,
-                    isMobileVerified: user.isMobileVerified,
-                    profession: user.profession,
-                    interests: user.interests,
-                }
-            });
-        })
-        .catch((error: any) => {
-            console.error('Error in OTP validation:', error);
-            const statusCode = error.status || 500;
-            const errorMessage = error.message || 'Error during OTP validation';
-
-            res.status(statusCode).json({
-                success: false, message: errorMessage
-            });
-        });
-};
-
-const validateUser: ValidateUserController = async (req, res) => {
-    const {identifier, password} = req.body;
-
-    // Check if identifier is email or username
-    const isEmail = identifier.includes('@');
-
-    // Create query based on identifier type
-    const query = isEmail ? {email: identifier} : {username: identifier};
-
-    User.findOne(query)
-        .select('+password') // Explicitly include password field if it's protected
-        .then((user: IUser | null) => {
-            if (!user) {
-                throw {
-                    status: 401,
-                    message: `No user found with this ${isEmail ? 'email' : 'username'}`
-                };
-            }
-
-            // Check if user is verified
-            if (!user.isEmailVerified) {
-                throw {
-                    status: 403, message: 'Please verify your email before logging in'
-                };
-            }
-
-            // Compare password
-            return validatePassword(password, user , isEmail)
-        })
-        .then((user: IUser) => {
-
-            // Set JWT in HTTP-only cookie
-            const token = setCookies(res, user);
-
-            // Return user data (excluding sensitive information)
-            res.json({
-                success: true, message: 'Login successful', data: <IUserResponse>{
-                    user: {
-                        id: user._id,
-                        name: user.name,
-                        email: user.email,
-                        username: user.username,
-                        about: user.about,
-                        interest: user.interests,
-                        profession: user.profession,
-                        isEmailVerified: user.isEmailVerified,
-                        isMobileVerified: user.isMobileVerified,
-                    },
-                    token
-                }
-            });
-        })
-        .catch((error: any) => {
-            console.error('Error in user validation:', error);
-            const statusCode = error.status || 500;
-            const errorMessage = error.message || 'Error during login';
-
-            res.status(statusCode).json({
-                success: false, message: errorMessage
-            });
-        });
-};
-
-const logoutUser: LogoutUserController = (req, res) => {
-    res.json({
-        success: true, message: 'Logged out successfully'
+    // Check existing username and mobile
+    const existingUser = await User.findOne({
+      $or: [{ username }, { mobile }]
     });
+
+    if (existingUser) {
+      const field = existingUser.mobile === mobile ? 'mobile number' : 'username';
+      throw new AppError(`User already exists with this ${field}`, 400);
+    }
+
+    // Hash password and create temporary user
+    const hashedPassword = await encryptPassword(password);
+    const temporaryUser = await User.create({
+      name,
+      username,
+      mobile,
+      password: hashedPassword,
+      registrationStage: 1
+    });
+
+    // Generate and send OTP
+    const generatedOtp = generateOtp();
+    await Promise.all([
+      sendMail(mobile, generatedOtp), // Assuming SMS functionality
+      setEmailAndOtp(mobile, generatedOtp)
+    ]);
+
+    return res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {
+      userId: temporaryUser._id
+    }));
+
+  } catch (error) {
+    console.error('Error in registration initiation:', error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json(formatResponse(false, error.message));
+    }
+    return res.status(500).json(formatResponse(false, 'Error during registration initiation'));
+  }
 };
 
-export default {registerUser, validateOtp, validateUser, logoutUser};
+// Stage 2: OTP Verification
+const verifyOtp = async (req: Request, res: Response) => {
+  try {
+    const { userId, mobile, otp } = req.body;
+
+    const redisData = await getEmailAndOtp(mobile);
+    if (!redisData) {
+      throw new AppError('OTP has expired', 400);
+    }
+
+    if (redisData.generatedOtp !== otp) {
+      await incrementWrongAttempts(mobile);
+      throw new AppError('Invalid OTP', 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        isMobileVerified: true,
+        registrationStage: 2
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    await removeEmailAndOtp(mobile);
+
+    return res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
+      userId: user._id
+    }));
+
+  } catch (error) {
+    console.error('Error in OTP verification:', error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json(formatResponse(false, error.message));
+    }
+    return res.status(500).json(formatResponse(false, 'Error during OTP verification'));
+  }
+};
+
+// Stage 3: Complete Profile
+const completeProfile = async (req: Request, res: Response) => {
+  try {
+    const { userId, about, interests, profession } = req.body;
+    const avatar = req.file;
+
+    if (!avatar) {
+      throw new AppError('Profile photo is required', 400);
+    }
+
+    // Upload avatar to cloudinary
+    const avatarResult = await uploadToCloudinary(avatar.path);
+    if (!avatarResult.secure_url) {
+      throw new AppError('Failed to upload profile photo', 500);
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        avatar: avatarResult.secure_url,
+        about,
+        interests,
+        profession,
+        registrationStage: 3,
+        isProfileComplete: true
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    const token = setCookies( user);
+
+    return res.json(formatResponse(true, 'Registration completed successfully', {
+      user: {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        mobile: user.mobile,
+        avatar: user.avatar,
+        about: user.about,
+        interests: user.interests,
+        profession: user.profession,
+        isMobileVerified: user.isMobileVerified
+      },
+      token
+    }));
+
+  } catch (error:any) {
+    console.error('Error in profile completion:', error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json(formatResponse(false, error.message));
+    }
+    return res.status(500).json(formatResponse(false, 'Error during profile completion'));
+  }
+};
+
+
+const validateUser: ValidateUserController = async (req: Request, res: Response) => {
+  try {
+    const { identifier, password } = req.body;
+
+    if (!identifier || !password) {
+      throw new AppError('Identifier and password are required', 400);
+    }
+
+    const isEmail = identifier.includes('@');
+    const query = isEmail ? { email: identifier } : { username: identifier };
+
+    const user = await User.findOne(query).select('+password');
+
+    if (!user) {
+      throw new AppError(
+        `No user found with this ${isEmail ? 'email' : 'username'}`,
+        401
+      );
+    }
+
+    const validatedUser = await validatePassword(password, user, isEmail);
+    const token = setCookies(validatedUser);
+
+    return res.json(formatResponse(true, 'Login successful', {
+      user: {
+        id: validatedUser._id,
+        name: validatedUser.name,
+        email: validatedUser.email,
+        username: validatedUser.username,
+        about: validatedUser.about,
+        interest: validatedUser.interests,
+        profession: validatedUser.profession,
+        isMobileVerified: validatedUser.isMobileVerified,
+      },
+      token
+    }));
+
+  } catch (error) {
+    console.error('Error in user validation:', error);
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json(formatResponse(false, error.message));
+    }
+    return res.status(500).json(formatResponse(false, 'Error during login'));
+  }
+};
+
+const logoutUser: LogoutUserController = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie('token');
+    return res.json(formatResponse(true, 'Logged out successfully'));
+  } catch (error) {
+    console.error('Error in logout:', error);
+    return res.status(500).json(formatResponse(false, 'Error during logout'));
+  }
+};
+
+
+export default {
+  initiateRegistration,
+  verifyOtp,
+  completeProfile,
+  validateUser,
+  logoutUser
+};
+
+
