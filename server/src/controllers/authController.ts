@@ -2,7 +2,7 @@
 import {Request, Response} from 'express';
 import User from '../models/userModel.js';
 import {getEmailAndOtp, incrementWrongAttempts, removeEmailAndOtp} from '../redis/redisUtils.js';
-import {setCookies} from "../utils/userUtils/getJwtToken.js";
+import {getTokens} from "../utils/tokens/getJwtToken.js";
 import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
 import {uploadToCloudinary} from '../utils/cloudinary.js';
 import {AppError} from '../utils/errors/helpers.js';
@@ -63,7 +63,7 @@ const initiateRegistration = async (req: Request, res: Response) => {
 // Stage 2: OTP Verification
 const verifyOtp = async (req: Request, res: Response) => {
   try {
-    const { email, otp} = req.body;
+    const {email, otp} = req.body;
 
     const redisData = await getEmailAndOtp(email);
     if (!redisData) {
@@ -88,9 +88,13 @@ const verifyOtp = async (req: Request, res: Response) => {
     }
 
     await removeEmailAndOtp(email);
+    const tokens = await getTokens(user._id as string);
+
 
     res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
-      user
+      user,
+      tokens,
+
     }));
 
   } catch (error: any) {
@@ -127,7 +131,7 @@ const completeProfile = async (req: Request, res: Response) => {
           interests,
           profession,
           registrationStage: 3,
-          isProfileComplete: true
+          isProfileComplete: true,
         },
         {new: true}
     );
@@ -136,7 +140,7 @@ const completeProfile = async (req: Request, res: Response) => {
       throw new AppError('User not found', 404);
     }
 
-    const token = setCookies(user);
+    const tokens = await getTokens(user._id as string);
 
     res.json(formatResponse(true, 'Registration completed successfully', {
       user: {
@@ -150,7 +154,7 @@ const completeProfile = async (req: Request, res: Response) => {
         profession: user.profession,
         isMobileVerified: user.isMobileVerified
       },
-      token
+      tokens
     }));
 
   } catch (error: any) {
@@ -211,23 +215,14 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
     }
 
     const validatedUser = await validatePassword(password, user, isEmail);
-    const token = setCookies(validatedUser);
+    const tokens = await getTokens(validatedUser._id as string);
 
     res.json(formatResponse(true, 'Login successful', {
-      user: {
-        id: validatedUser._id,
-        name: validatedUser.name,
-        email: validatedUser.email,
-        username: validatedUser.username,
-        about: validatedUser.about,
-        interest: validatedUser.interests,
-        profession: validatedUser.profession,
-        isMobileVerified: validatedUser.isMobileVerified,
-      },
-      token
+      user,
+      tokens
     }));
 
-  } catch (error:any) {
+  } catch (error: any) {
     console.error('Error in user validation:', error);
 
     res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during login'));

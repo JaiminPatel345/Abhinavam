@@ -8,6 +8,8 @@ import connectDB from "./database.js";
 import authRouter from './routes/authRoute.js';
 import { CustomError, CustomErrorHandler } from './types/server.types.js';
 import {formatResponse} from "./utils/formatResponse.js";
+import tokenRoute from "./routes/tokenRoute.js";
+import postRoute from "./routes/postRoute.js";
 
 // Create Express app
 const app = express();
@@ -28,6 +30,8 @@ const startServer = async () => {
 
     // Routes
     app.use('/auth', authRouter);
+    app.use('/token' , tokenRoute);
+    app.use('/post' , postRoute);
 
     // Health check route
     app.get("/", (req: Request, res: Response) => {
@@ -36,7 +40,7 @@ const startServer = async () => {
 
     // 404 Handler
     app.use((req: Request, res: Response) => {
-      res.status(404).json(formatResponse(false , "Not Found" ));
+      res.status(404).json(formatResponse(false , "Not Route Found" ));
       return
     });
 

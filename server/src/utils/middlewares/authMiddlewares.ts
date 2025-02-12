@@ -90,7 +90,7 @@ export const validateLoginInput = (
     const errors: string[] = [];
 
     if (!identifier) {
-      errors.push('Username or mobile number is required');
+      errors.push('Username or email is required');
     }
 
     if (!password) {
@@ -103,60 +103,6 @@ export const validateLoginInput = (
     }
 
     next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const isAuthenticated = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-): Promise<void> => {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader?.startsWith('Bearer ')) {
-      res.status(401).json(formatResponse(false, 'No auth token'));
-      return;
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-      const decoded = jwt.verify(
-          token,
-          process.env.JWT_SECRET as string
-      ) as JwtPayload;
-
-      const user = await User.findById(decoded.id);
-
-      if (!user) {
-        res.status(401).json(formatResponse(false, 'User not found'));
-        return;
-      }
-
-      if (user.status !== 'active') {
-        res.status(403).json(
-            formatResponse(false, 'Account is not active. Please contact support.')
-        );
-        return;
-      }
-
-      if (user.isAccountLocked()) {
-        res.status(403).json(
-            formatResponse(false, 'Account is temporarily locked. Please try again later.')
-        );
-        return;
-      }
-
-      // Attach user to request object
-      req.user = user;
-      next();
-    } catch (error) {
-      res.status(401).json(formatResponse(false, 'Invalid or expired token'));
-      return;
-    }
   } catch (error) {
     next(error);
   }

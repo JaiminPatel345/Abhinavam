@@ -1,35 +1,31 @@
 import {IMiddleware} from "../../types/common.types.js";
-import jwt, {VerifyErrors} from "jsonwebtoken";
-import {IJwtPayload} from "../../types/user.types.js";
-import {Response} from "express";
+import {client} from "../../redis/redis.js";
+import {AppError} from "../errors/helpers.js";
+import {formatResponse} from "../formatResponse.js";
+import checkTokens from "../tokens/checkTokens.js";
 
 export const verifyToken: IMiddleware['verifyToken'] = async (req, res, next) => {
-    try {
-        const bearerHeader = req.headers.authorization;
+  try {
 
-        if (!bearerHeader) {
-            return res.status(401).json({ message: "No token provided" });
-        }
+    const uuid = await checkTokens(req, res, process.env.JWT_ACCESS_SECRET as string)
 
-        const token = bearerHeader.split(' ')[1];
+    //get from redis
+    const userId = await client.get(uuid)
 
-        if (!token) {
-            return res.status(401).json({ message: "Invalid token format" });
-        }
-
-        jwt.verify(
-            token,
-            process.env.JWT_SECRET as string,
-            (err: jwt.VerifyErrors | null , decoded) => {
-                if (err) {
-                    return res.status(403).json({ message: "Invalid or expired token" });
-                }
-
-                req.user = decoded as IJwtPayload;
-                next();
-            }
-        );
-    } catch (error) {
-        return res.status(500).json({ message: "Server error during authentication" });
+    if (!userId) {
+      throw new AppError('Invalid token', 401)
     }
+
+    //TODO:Remove in production
+    console.log(userId)
+    req.userId = userId;
+    next();
+
+  } catch (error: any) {
+
+    //TODO:Remove in production
+    console.log("error in validate token", error)
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Server error during authentication"));
+
+  }
 }
