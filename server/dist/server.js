@@ -15,6 +15,8 @@ import connectDB from "./database.js";
 // Import routes
 import authRouter from './routes/authRoute.js';
 import { formatResponse } from "./utils/formatResponse.js";
+import tokenRoute from "./routes/tokenRoute.js";
+import postRoute from "./routes/postRoute.js";
 // Create Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
@@ -30,13 +32,15 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         connectDB();
         // Routes
         app.use('/auth', authRouter);
+        app.use('/token', tokenRoute);
+        app.use('/post', postRoute);
         // Health check route
         app.get("/", (req, res) => {
             res.json({ message: "Connected" });
         });
         // 404 Handler
         app.use((req, res) => {
-            res.status(404).json(formatResponse(false, "Not Found"));
+            res.status(404).json(formatResponse(false, "Not Route Found"));
             return;
         });
         // Error handling middleware

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import User from '../models/userModel.js';
 import { getEmailAndOtp, incrementWrongAttempts, removeEmailAndOtp } from '../redis/redisUtils.js';
-import { setCookies } from "../utils/userUtils/getJwtToken.js";
+import { getTokens } from "../utils/tokens/getJwtToken.js";
 import { encryptPassword, validatePassword } from "../utils/userUtils/passwordEncryption.js";
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 import { AppError } from '../utils/errors/helpers.js';
@@ -75,8 +75,10 @@ const verifyOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             throw new AppError('User not found', 404);
         }
         yield removeEmailAndOtp(email);
+        const tokens = yield getTokens(user._id);
         res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
-            user
+            user,
+            tokens,
         }));
     }
     catch (error) {
@@ -107,12 +109,12 @@ const completeProfile = (req, res) => __awaiter(void 0, void 0, void 0, function
             interests,
             profession,
             registrationStage: 3,
-            isProfileComplete: true
+            isProfileComplete: true,
         }, { new: true });
         if (!user) {
             throw new AppError('User not found', 404);
         }
-        const token = setCookies(user);
+        const tokens = yield getTokens(user._id);
         res.json(formatResponse(true, 'Registration completed successfully', {
             user: {
                 id: user._id,
@@ -125,7 +127,7 @@ const completeProfile = (req, res) => __awaiter(void 0, void 0, void 0, function
                 profession: user.profession,
                 isMobileVerified: user.isMobileVerified
             },
-            token
+            tokens
         }));
     }
     catch (error) {
@@ -169,19 +171,10 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             throw new AppError(`No user found with this ${isEmail ? 'email' : 'username'}`, 401);
         }
         const validatedUser = yield validatePassword(password, user, isEmail);
-        const token = setCookies(validatedUser);
+        const tokens = yield getTokens(validatedUser._id);
         res.json(formatResponse(true, 'Login successful', {
-            user: {
-                id: validatedUser._id,
-                name: validatedUser.name,
-                email: validatedUser.email,
-                username: validatedUser.username,
-                about: validatedUser.about,
-                interest: validatedUser.interests,
-                profession: validatedUser.profession,
-                isMobileVerified: validatedUser.isMobileVerified,
-            },
-            token
+            user,
+            tokens
         }));
     }
     catch (error) {

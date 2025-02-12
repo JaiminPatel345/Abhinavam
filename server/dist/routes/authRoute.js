@@ -1,7 +1,8 @@
 import express from "express";
 import multer from "multer";
 import authController from "../controllers/authController.js";
-import { isAuthenticated, isValidatedEmail, validateInitialRegistration, validateLoginInput, validateOtpVerification, validateProfileCompletion, } from "../utils/middlewares/authMiddlewares.js";
+import { isValidatedEmail, validateInitialRegistration, validateLoginInput, validateOtpVerification, validateProfileCompletion, } from "../utils/middlewares/authMiddlewares.js";
+import { verifyToken } from "../utils/middlewares/IsUserLoggedIn.js";
 const router = express.Router();
 // Configure multer
 const upload = multer({
@@ -19,9 +20,9 @@ const upload = multer({
 // Routes
 router.post("/register/init", isValidatedEmail, validateInitialRegistration, authController.initiateRegistration);
 router.post("/register/verify-otp", validateOtpVerification, authController.verifyOtp);
-router.post("/register/complete-profile", isAuthenticated, upload.single("avatar"), validateProfileCompletion, authController.completeProfile);
+router.post("/register/complete-profile", verifyToken, upload.single("avatar"), validateProfileCompletion, authController.completeProfile);
 router.post("/register/resend-otp", isValidatedEmail, authController.resendOtp);
 router.post("/login", validateLoginInput, authController.validateUser);
-router.post("/logout", isAuthenticated, authController.logoutUser);
+router.post("/logout", verifyToken, authController.logoutUser);
 export default router;
 //# sourceMappingURL=authRoute.js.map

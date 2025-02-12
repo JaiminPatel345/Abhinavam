@@ -1,0 +1,1 @@
+{"version":3,"file":"tokenRoute.js","sourceRoot":"","sources":["../../src/routes/tokenRoute.ts"],"names":[],"mappings":"AAAA,OAAO,OAAO,MAAM,SAAS,CAAC;AAC9B,MAAM,MAAM,GAAG,OAAO,CAAC,MAAM,EAAE,CAAC;AAChC,OAAO,eAAe,MAAM,mCAAmC,CAAC;AAEhE,MAAM,CAAC,GAAG,CAAC,iBAAiB,EAAE,eAAe,CAAC,aAAa,CAAC,CAAC;AAE7D,eAAe,MAAM,CAAC"}

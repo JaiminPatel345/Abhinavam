@@ -7,27 +7,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import jwt from "jsonwebtoken";
+import { client } from "../../redis/redis.js";
+import { AppError } from "../errors/helpers.js";
+import { formatResponse } from "../formatResponse.js";
+import checkTokens from "../tokens/checkTokens.js";
 export const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const bearerHeader = req.headers.authorization;
-        if (!bearerHeader) {
-            return res.status(401).json({ message: "No token provided" });
+        const uuid = yield checkTokens(req, res, process.env.JWT_ACCESS_SECRET);
+        //get from redis
+        const userId = yield client.get(uuid);
+        if (!userId) {
+            throw new AppError('Invalid token', 401);
         }
-        const token = bearerHeader.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: "Invalid token format" });
-        }
-        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-            if (err) {
-                return res.status(403).json({ message: "Invalid or expired token" });
-            }
-            req.user = decoded;
-            next();
-        });
+        //TODO:Remove in production
+        console.log(userId);
+        req.userId = userId;
+        next();
     }
     catch (error) {
-        return res.status(500).json({ message: "Server error during authentication" });
+        //TODO:Remove in production
+        console.log("error in validate token", error);
+        res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Server error during authentication"));
     }
 });
 //# sourceMappingURL=IsUserLoggedIn.js.map

@@ -2,12 +2,13 @@ import express from "express";
 import multer from "multer";
 import authController from "../controllers/authController.js";
 import {
-  isAuthenticated, isValidatedEmail,
+   isValidatedEmail,
   validateInitialRegistration,
   validateLoginInput,
   validateOtpVerification,
   validateProfileCompletion,
 } from "../utils/middlewares/authMiddlewares.js";
+import {verifyToken} from "../utils/middlewares/IsUserLoggedIn.js";
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.post(
 
 router.post(
     "/register/complete-profile",
-    isAuthenticated,
+    verifyToken,
     upload.single("avatar"),
     validateProfileCompletion,
     authController.completeProfile
@@ -53,6 +54,6 @@ router.post("/register/resend-otp",
 
 router.post("/login", validateLoginInput, authController.validateUser);
 
-router.post("/logout", isAuthenticated, authController.logoutUser);
+router.post("/logout", verifyToken, authController.logoutUser);
 
 export default router;
