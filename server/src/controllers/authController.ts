@@ -1,32 +1,29 @@
 // authController.ts
-import { Request, Response } from 'express';
+import {Request, Response} from 'express';
 import User from '../models/userModel.js';
-import {
-  getEmailAndOtp,
-  removeEmailAndOtp,
-  setEmailAndOtp,
-  incrementWrongAttempts
-} from '../redis/redisUtils.js';
-import generateOtp from "../utils/userUtils/generateOtp.js";
-import sendMail from "../utils/userUtils/sendMail.js";
+import {getEmailAndOtp, incrementWrongAttempts, removeEmailAndOtp} from '../redis/redisUtils.js';
 import {setCookies} from "../utils/userUtils/getJwtToken.js";
-import { encryptPassword, validatePassword } from "../utils/userUtils/passwordEncryption.js";
-import { uploadToCloudinary } from '../utils/cloudinary.js';
-import { AppError, formatResponse } from '../utils/helpers.js';
+import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
+import {uploadToCloudinary} from '../utils/cloudinary.js';
+import {AppError} from '../utils/errors/helpers.js';
 import {LogoutUserController, ValidateUserController} from "../types/user.types.js";
+import {MongooseErrorHandler} from "../utils/errors/mongooseErrorHandler.js";
+import handleOtp from "../utils/userUtils/handleOtp.js";
+import {formatResponse} from "../utils/formatResponse.js";
 
 // Stage 1: Initial Registration
 const initiateRegistration = async (req: Request, res: Response) => {
   try {
-    const { name, username, mobile, password } = req.body;
+    const {name, username, email, mobile, password} = req.body;
 
     // Check existing username and mobile
     const existingUser = await User.findOne({
-      $or: [{ username }, { mobile }]
+      //TODO: also check for mobile
+      $or: [{username}, {email}]
     });
 
     if (existingUser) {
-      const field = existingUser.mobile === mobile ? 'mobile number' : 'username';
+      const field = existingUser.email === email ? 'email ' : 'username';
       throw new AppError(`User already exists with this ${field}`, 400);
     }
 
@@ -35,78 +32,81 @@ const initiateRegistration = async (req: Request, res: Response) => {
     const temporaryUser = await User.create({
       name,
       username,
+      email,
       mobile,
       password: hashedPassword,
       registrationStage: 1
     });
 
-    // Generate and send OTP
-    const generatedOtp = generateOtp();
-    await Promise.all([
-      sendMail(mobile, generatedOtp), // Assuming SMS functionality
-      setEmailAndOtp(mobile, generatedOtp)
-    ]);
+    //Generate and send otp also set in redis
+    await handleOtp(email)
 
-    return res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {
+
+    res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {
       userId: temporaryUser._id
     }));
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in registration initiation:', error);
+
+    //first handle mongoose error
+    MongooseErrorHandler.handle(error, res);
+
     if (error instanceof AppError) {
-      return res.status(error.statusCode).json(formatResponse(false, error.message));
+      res.status(error.statusCode).json(formatResponse(false, error.message));
+      return
     }
-    return res.status(500).json(formatResponse(false, 'Error during registration initiation'));
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
   }
 };
 
 // Stage 2: OTP Verification
 const verifyOtp = async (req: Request, res: Response) => {
   try {
-    const { userId, mobile, otp } = req.body;
+    const { email, otp} = req.body;
 
-    const redisData = await getEmailAndOtp(mobile);
+    const redisData = await getEmailAndOtp(email);
     if (!redisData) {
       throw new AppError('OTP has expired', 400);
     }
 
     if (redisData.generatedOtp !== otp) {
-      await incrementWrongAttempts(mobile);
+      await incrementWrongAttempts(email);
       throw new AppError('Invalid OTP', 400);
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      {
-        isMobileVerified: true,
-        registrationStage: 2
-      },
-      { new: true }
+    const user = await User.findOneAndUpdate(
+        {email},
+        {
+          registrationStage: 2
+        },
+        {new: true}
     );
 
     if (!user) {
       throw new AppError('User not found', 404);
     }
 
-    await removeEmailAndOtp(mobile);
+    await removeEmailAndOtp(email);
 
-    return res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
-      userId: user._id
+    res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
+      user
     }));
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in OTP verification:', error);
     if (error instanceof AppError) {
-      return res.status(error.statusCode).json(formatResponse(false, error.message));
+      res.status(error.statusCode).json(formatResponse(false, error.message));
+      return
     }
-    return res.status(500).json(formatResponse(false, 'Error during OTP verification'));
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during OTP verification'));
   }
 };
 
 // Stage 3: Complete Profile
 const completeProfile = async (req: Request, res: Response) => {
   try {
-    const { userId, about, interests, profession } = req.body;
+    const {userId, about, interests, profession} = req.body;
     const avatar = req.file;
 
     if (!avatar) {
@@ -120,25 +120,25 @@ const completeProfile = async (req: Request, res: Response) => {
     }
 
     const user = await User.findByIdAndUpdate(
-      userId,
-      {
-        avatar: avatarResult.secure_url,
-        about,
-        interests,
-        profession,
-        registrationStage: 3,
-        isProfileComplete: true
-      },
-      { new: true }
+        userId,
+        {
+          avatar: avatarResult.secure_url,
+          about,
+          interests,
+          profession,
+          registrationStage: 3,
+          isProfileComplete: true
+        },
+        {new: true}
     );
 
     if (!user) {
       throw new AppError('User not found', 404);
     }
 
-    const token = setCookies( user);
+    const token = setCookies(user);
 
-    return res.json(formatResponse(true, 'Registration completed successfully', {
+    res.json(formatResponse(true, 'Registration completed successfully', {
       user: {
         id: user._id,
         name: user.name,
@@ -153,40 +153,67 @@ const completeProfile = async (req: Request, res: Response) => {
       token
     }));
 
-  } catch (error:any) {
+  } catch (error: any) {
     console.error('Error in profile completion:', error);
     if (error instanceof AppError) {
-      return res.status(error.statusCode).json(formatResponse(false, error.message));
+      res.status(error.statusCode).json(formatResponse(false, error.message));
+      return
     }
-    return res.status(500).json(formatResponse(false, 'Error during profile completion'));
+    res.status(500).json(formatResponse(false, 'Error during profile completion'));
   }
 };
 
+//Resend OTP
+const resendOtp = async (req: Request, res: Response) => {
+  try {
+    const {email} = req.body;
+
+    //find user
+    const existingUser = await User.findOne({email});
+    if (!existingUser) {
+      throw new AppError('Email not registered not found', 404);
+    }
+
+    await handleOtp(email)
+
+    res.status(200).json(formatResponse(true, ' OTP sent successfully',));
+
+
+  } catch (error: any) {
+    console.error('Error in resendOtp:', error);
+
+    //first handle mongoose error
+    MongooseErrorHandler.handle(error, res);
+
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
+
+  }
+}
 
 const validateUser: ValidateUserController = async (req: Request, res: Response) => {
   try {
-    const { identifier, password } = req.body;
+    const {identifier, password} = req.body;
 
     if (!identifier || !password) {
       throw new AppError('Identifier and password are required', 400);
     }
 
     const isEmail = identifier.includes('@');
-    const query = isEmail ? { email: identifier } : { username: identifier };
+    const query = isEmail ? {email: identifier} : {username: identifier};
 
     const user = await User.findOne(query).select('+password');
 
     if (!user) {
       throw new AppError(
-        `No user found with this ${isEmail ? 'email' : 'username'}`,
-        401
+          `No user found with this ${isEmail ? 'email' : 'username'}`,
+          401
       );
     }
 
     const validatedUser = await validatePassword(password, user, isEmail);
     const token = setCookies(validatedUser);
 
-    return res.json(formatResponse(true, 'Login successful', {
+    res.json(formatResponse(true, 'Login successful', {
       user: {
         id: validatedUser._id,
         name: validatedUser.name,
@@ -200,12 +227,10 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
       token
     }));
 
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error in user validation:', error);
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json(formatResponse(false, error.message));
-    }
-    return res.status(500).json(formatResponse(false, 'Error during login'));
+
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during login'));
   }
 };
 
@@ -224,6 +249,7 @@ export default {
   initiateRegistration,
   verifyOtp,
   completeProfile,
+  resendOtp,
   validateUser,
   logoutUser
 };

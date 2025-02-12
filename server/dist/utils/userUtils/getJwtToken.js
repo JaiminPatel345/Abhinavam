@@ -1,7 +1,9 @@
-import jwt from "jsonwebtoken";
-const JWT_SECRET = process.env.JWT_SECRET;
-const getJwtToken = (res, user) => {
-    return jwt.sign({ userId: user._id, email: user.email, username: user.username }, JWT_SECRET);
+import jwt from 'jsonwebtoken';
+const generateToken = (user) => {
+    return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
-export default getJwtToken;
+export const setCookies = (user) => {
+    const token = generateToken(user);
+    return token;
+};
 //# sourceMappingURL=getJwtToken.js.map

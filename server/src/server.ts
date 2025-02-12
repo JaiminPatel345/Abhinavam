@@ -7,6 +7,7 @@ import connectDB from "./database.js";
 // Import routes
 import authRouter from './routes/authRoute.js';
 import { CustomError, CustomErrorHandler } from './types/server.types.js';
+import {formatResponse} from "./utils/formatResponse.js";
 
 // Create Express app
 const app = express();
@@ -35,23 +36,18 @@ const startServer = async () => {
 
     // 404 Handler
     app.use((req: Request, res: Response) => {
-      res.status(404).json({ message: "Not Found" });
+      res.status(404).json(formatResponse(false , "Not Found" ));
+      return
     });
 
     // Error handling middleware
-    const errorHandler: CustomErrorHandler = (err, req, res, next) => {
-      console.error('Unhandled Error:', err);
+    const errorHandler: CustomErrorHandler = (error, req, res, next) => {
+      console.error('Unhandled Error:', error);
 
       // Default to 500 if no status code is set
-      const statusCode = err.status || 500;
+      const statusCode = error.status || 500;
       
-      res.status(statusCode).json({
-        message: err.message || 'Internal Server Error',
-        ...(process.env.NODE_ENV === 'development' && { 
-          stack: err.stack,
-          code: err.code 
-        })
-      });
+      res.status(statusCode).json(formatResponse(false , error.message || "Internal Server Error" , error));
     };
 
     app.use(errorHandler);

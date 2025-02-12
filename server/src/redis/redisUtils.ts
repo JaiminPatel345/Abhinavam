@@ -1,5 +1,6 @@
 import { client } from "./redis.js";
 import { IRedisUtils, IRedisOtpData } from "../types/redis.types.js";
+import {AppError} from "../utils/errors/helpers.js";
 
 const MAX_OTP_ATTEMPTS = 3;
 const OTP_EXPIRY_SECONDS = 60 * 10; // 10 minutes
@@ -59,7 +60,7 @@ export const getEmailAndOtp: IRedisUtils['getEmailAndOtp'] = async (email) => {
         // Check if max attempts exceeded
         if (data.wrongAttempts >= MAX_OTP_ATTEMPTS) {
             await removeEmailAndOtp(email);
-            throw new Error('Maximum OTP attempts exceeded');
+            throw new AppError( 'Maximum OTP attempts exceeded' ,400);
         }
 
         return data;

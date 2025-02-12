@@ -1,20 +1,20 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import multer from "multer";
 import authController from "../controllers/authController.js";
 import {
+  isAuthenticated, isValidatedEmail,
   validateInitialRegistration,
+  validateLoginInput,
   validateOtpVerification,
   validateProfileCompletion,
-  validateLoginInput,
 } from "../utils/middlewares/authMiddlewares.js";
-import { isAuthenticated } from "../utils/middlewares/authMiddlewares.js";
 
 const router = express.Router();
 
 // Configure multer
 const upload = multer({
   dest: "uploads/",
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: {fileSize: 5 * 1024 * 1024}, // 5MB
   fileFilter: (_, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -26,23 +26,29 @@ const upload = multer({
 
 // Routes
 router.post(
-  "/register/init",
-  validateInitialRegistration,
-  authController.initiateRegistration
+    "/register/init",
+    isValidatedEmail,
+    validateInitialRegistration,
+    authController.initiateRegistration
 );
 
 router.post(
-  "/register/verify-otp",
-  validateOtpVerification,
-  authController.verifyOtp
+    "/register/verify-otp",
+    validateOtpVerification,
+    authController.verifyOtp
 );
 
 router.post(
-  "/register/complete-profile",
-  isAuthenticated,
-  upload.single("avatar"),
-  validateProfileCompletion,
-  authController.completeProfile
+    "/register/complete-profile",
+    isAuthenticated,
+    upload.single("avatar"),
+    validateProfileCompletion,
+    authController.completeProfile
+);
+
+router.post("/register/resend-otp",
+    isValidatedEmail,
+    authController.resendOtp
 );
 
 router.post("/login", validateLoginInput, authController.validateUser);

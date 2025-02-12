@@ -14,6 +14,7 @@ import { connectRedis } from './redis/redis.js';
 import connectDB from "./database.js";
 // Import routes
 import authRouter from './routes/authRoute.js';
+import { formatResponse } from "./utils/formatResponse.js";
 // Create Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
@@ -35,17 +36,15 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         });
         // 404 Handler
         app.use((req, res) => {
-            res.status(404).json({ message: "Not Found" });
+            res.status(404).json(formatResponse(false, "Not Found"));
+            return;
         });
         // Error handling middleware
-        const errorHandler = (err, req, res, next) => {
-            console.error('Unhandled Error:', err);
+        const errorHandler = (error, req, res, next) => {
+            console.error('Unhandled Error:', error);
             // Default to 500 if no status code is set
-            const statusCode = err.status || 500;
-            res.status(statusCode).json(Object.assign({ message: err.message || 'Internal Server Error' }, (process.env.NODE_ENV === 'development' && {
-                stack: err.stack,
-                code: err.code
-            })));
+            const statusCode = error.status || 500;
+            res.status(statusCode).json(formatResponse(false, error.message || "Internal Server Error", error));
         };
         app.use(errorHandler);
         // Start server
