@@ -1,7 +1,7 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose, {Model} from 'mongoose';
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
-import { IUser } from "../types/user.types.js";
+import {IUser} from "../types/user.types.js";
 
 const UserSchema = new mongoose.Schema<IUser>({
   // Stage 1 Fields
@@ -21,13 +21,32 @@ const UserSchema = new mongoose.Schema<IUser>({
     minlength: [3, 'Username must be at least 3 characters long'],
     maxlength: [30, 'Username cannot exceed 30 characters'],
     match: [
-      /^[a-z0-9_]+$/,
-      'Username can only contain lowercase letters, numbers, and underscores',
+      /^[a-z0-9_.]+$/,
+      'Username can only contain lowercase letters, numbers, dot ,  and underscores',
     ],
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      'Please enter a valid email address'
+    ],
+    validate: {
+      validator: function (email: string) {
+        // Additional custom validation if needed
+        return email.length <= 254; // Maximum email length as per RFC 5321
+      },
+      message: 'Email is too long. Maximum length is 254 characters'
+    },
+    index: true // For query performance
   },
   mobile: {
     type: String,
-    required: [true, 'Mobile number is required'],
+    // required: [true, 'Mobile number is required'],
     unique: true,
     match: [
       /^\+[1-9]\d{6,14}$/,
@@ -61,27 +80,30 @@ const UserSchema = new mongoose.Schema<IUser>({
   interests: {
     type: [String],
     validate: {
-      validator: function(interests: string[]) {
+      validator: function (interests: string[]) {
         if (interests.length === 0) return true;
         if (interests.length > 5) return false; // Maximum 5 interests
         return interests.every(interest => INTERESTS.includes(interest));
       },
       message: props =>
-        props.value.length > 5
-          ? 'Maximum 5 interests allowed'
-          : `${props.value} contains invalid interests`,
+          props.value.length > 5
+              ? 'Maximum 5 interests allowed'
+              : `${props.value} contains invalid interests`,
     },
     default: [],
   },
   profession: {
-    type: [String], // Changed from array to single string
+    type: [String],
     validate: {
-      validator: function(profession: string) {
-        if (!profession) return true;
-        return PROFESSIONS.includes(profession);
+      validator: function (professions: string[]) {
+        // Allow empty array during initial registration
+        if (professions.length === 0) return true;
+        // Validate each profession in the array
+        return professions.every(profession => PROFESSIONS.includes(profession));
       },
-      message: props => `${props.value} is not a valid profession`,
+      message: props => `One or more professions are not valid`,
     },
+    default: []
   },
 
   // Registration Process Tracking
@@ -117,7 +139,7 @@ const UserSchema = new mongoose.Schema<IUser>({
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       delete ret.password;
       delete ret.__v;
       delete ret.loginAttempts;
@@ -128,12 +150,12 @@ const UserSchema = new mongoose.Schema<IUser>({
 });
 
 // Indexes for performance
-UserSchema.index({ username: 1 });
-UserSchema.index({ mobile: 1 });
-UserSchema.index({ status: 1 });
+// UserSchema.index({ username: 1 });
+// UserSchema.index({ mobile: 1 });
+UserSchema.index({status: 1});
 
 // Methods for account security
-UserSchema.methods.incrementLoginAttempts = async function() {
+UserSchema.methods.incrementLoginAttempts = async function () {
   this.loginAttempts += 1;
   if (this.loginAttempts >= 5) {
     this.accountLockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
@@ -142,30 +164,30 @@ UserSchema.methods.incrementLoginAttempts = async function() {
   await this.save();
 };
 
-UserSchema.methods.resetLoginAttempts = async function() {
+UserSchema.methods.resetLoginAttempts = async function () {
   this.loginAttempts = 0;
   this.accountLockUntil = null;
   this.status = 'active';
   await this.save();
 };
 
-UserSchema.methods.isAccountLocked = function() {
+UserSchema.methods.isAccountLocked = function () {
   return this.accountLockUntil && this.accountLockUntil > new Date();
 };
 
 // Method to check if profile is complete
-UserSchema.methods.checkProfileComplete = function() {
+UserSchema.methods.checkProfileComplete = function () {
   return Boolean(
-    this.isMobileVerified &&
-    this.about &&
-    this.interests.length > 0 &&
-    this.profession &&
-    this.avatar !== 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png'
+      this.isMobileVerified &&
+      this.about &&
+      this.interests.length > 0 &&
+      this.profession &&
+      this.avatar !== 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png'
   );
 };
 
 // Pre-save middleware to update isProfileComplete
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) {
   if (this.isModified('about') ||
       this.isModified('interests') ||
       this.isModified('profession') ||
