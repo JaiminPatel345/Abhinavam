@@ -1,6 +1,6 @@
 // src/types/user.types.ts
 import {Request, Response} from "express";
-import {Document} from 'mongoose';
+import mongoose, {Document} from 'mongoose';
 
 // Custom Request types
 export interface TypedRequest<T> extends Request {
@@ -17,6 +17,7 @@ export interface IUser extends Document {
   about?: string;
   interests?: string[];
   profession?: string;
+  posts?: mongoose.Types.ObjectId[];
   isMobileVerified: boolean;
   registrationStage: 1 | 2 | 3;
   isProfileComplete: boolean;

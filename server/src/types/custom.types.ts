@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 export interface TypedRequestBody<T> extends Request {
   body: T;
-  user?: any; // Replace with your user type
+  userId?: string;
 }
 
 // utils/AppError.ts

@@ -3,17 +3,17 @@ import {CreateCommentBody, UpdateCommentBody} from "../types/post.types.js";
 import {AppError, formatResponse, TypedRequestBody} from "../types/custom.types.js";
 import {Post} from "../models/postModel.js";
 import {Comment} from "../models/commentModel.js";
-import {Types} from "mongoose";
+import mongoose, {Types} from "mongoose";
 
 
 // Individual controller methods approach
-export const createComment = async (
+const createComment = async (
     req: TypedRequestBody<CreateCommentBody>,
     res: Response
 ) => {
   try {
     const {content, postId, parentCommentId} = req.body;
-    const userId = req.user?._id;
+    const userId = req.userId
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -57,7 +57,7 @@ export const createComment = async (
   }
 };
 
-export const getPostComments = async (req: Request, res: Response) => {
+const getPostComments = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -104,13 +104,13 @@ export const getPostComments = async (req: Request, res: Response) => {
   }
 };
 
-export const updateComment = async (
+const updateComment = async (
     req: TypedRequestBody<UpdateCommentBody>,
     res: Response
 ) => {
   try {
     const {content} = req.body;
-    const userId = req.user?._id;
+    const userId = req.userId;
     const commentId = req.params.id;
 
     if (!userId) {
@@ -139,9 +139,9 @@ export const updateComment = async (
   }
 };
 
-export const deleteComment = async (req: Request, res: Response) => {
+const deleteComment = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = req.userId
     const commentId = req.params.id;
 
     if (!userId) {
@@ -178,9 +178,9 @@ export const deleteComment = async (req: Request, res: Response) => {
   }
 };
 
-export const toggleLike = async (req: Request, res: Response) => {
+const toggleLike = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = new mongoose.Types.ObjectId(req.userId);
     const commentId = req.params.id;
 
     if (!userId) {
@@ -216,7 +216,7 @@ export const toggleLike = async (req: Request, res: Response) => {
   }
 };
 
-export const getReplies = async (req: Request, res: Response) => {
+const getReplies = async (req: Request, res: Response) => {
   try {
     const {id} = req.params;
     const page = parseInt(req.query.page as string) || 1;
@@ -245,3 +245,13 @@ export const getReplies = async (req: Request, res: Response) => {
     );
   }
 };
+
+export default {
+  createComment,
+  getPostComments,
+  updateComment,
+  deleteComment,
+  toggleLike,
+  getReplies,
+
+}
