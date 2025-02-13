@@ -7,7 +7,7 @@ interface CommentModel extends Model<IComment> {
   getRepliesTree(commentId: Types.ObjectId): Promise<IComment | null>;
 }
 
-const commentSchema = new Schema<IComment, CommentModel>({
+const CommentSchema = new Schema<IComment, CommentModel>({
   content: {
     type: String,
     required: [true, 'Comment content is required'],
@@ -51,23 +51,23 @@ const commentSchema = new Schema<IComment, CommentModel>({
 });
 
 // Indexes
-commentSchema.index({createdAt: -1});
-commentSchema.index({post: 1, createdAt: -1});
-commentSchema.index({author: 1, createdAt: -1});
-commentSchema.index({parentComment: 1, createdAt: -1});
+CommentSchema.index({createdAt: -1});
+CommentSchema.index({post: 1, createdAt: -1});
+CommentSchema.index({author: 1, createdAt: -1});
+CommentSchema.index({parentComment: 1, createdAt: -1});
 
 // Add virtual for likes count
-commentSchema.virtual('likesCount').get(function (this: IComment) {
+CommentSchema.virtual('likesCount').get(function (this: IComment) {
   return this.likes.length;
 });
 
 // Add virtual for replies count
-commentSchema.virtual('repliesCount').get(function (this: IComment) {
+CommentSchema.virtual('repliesCount').get(function (this: IComment) {
   return this.replies.length;
 });
 
 // Middleware to handle replies
-commentSchema.pre('save', async function (this: IComment, next) {
+CommentSchema.pre('save', async function (this: IComment, next) {
   try {
     if (this.isNew && this.parentComment) {
       await Comment.findByIdAndUpdate(
@@ -83,7 +83,7 @@ commentSchema.pre('save', async function (this: IComment, next) {
 });
 
 // Middleware to handle comment deletion
-commentSchema.pre('deleteOne', {document: true, query: false}, async function (this: IComment, next) {
+CommentSchema.pre('deleteOne', {document: true, query: false}, async function (this: IComment, next) {
   try {
     // Remove this comment's ID from parent's replies array if it's a reply
     if (this.parentComment) {
@@ -105,7 +105,7 @@ commentSchema.pre('deleteOne', {document: true, query: false}, async function (t
 });
 
 // Static method to get replies tree
-commentSchema.statics.getRepliesTree = async function (commentId: Types.ObjectId): Promise<IComment | null> {
+CommentSchema.statics.getRepliesTree = async function (commentId: Types.ObjectId): Promise<IComment | null> {
   return this.findById(commentId)
       .populate({
         path: 'replies',
@@ -127,12 +127,12 @@ commentSchema.statics.getRepliesTree = async function (commentId: Types.ObjectId
 };
 
 // Helper method to check if user has liked the comment
-commentSchema.methods.isLikedByUser = function (userId: Types.ObjectId): boolean {
+CommentSchema.methods.isLikedByUser = function (userId: Types.ObjectId): boolean {
   return this.likes.some((likeId: Types.ObjectId) =>
       likeId.toString() === userId.toString()
   );
 };
 
-const Comment = model<IComment, CommentModel>('Comment', commentSchema);
+const Comment = model<IComment, CommentModel>('Comment', CommentSchema);
 
 export {Comment};

@@ -29,9 +29,9 @@ const startServer = async () => {
     connectDB();
 
     // Routes
-    app.use('/auth', authRouter);
-    app.use('/token', tokenRoute);
     app.use('/post', postRoute);
+    app.use('/token', tokenRoute);
+    app.use('/auth', authRouter);
 
     // Health check route
     app.get("/", (req: Request, res: Response) => {

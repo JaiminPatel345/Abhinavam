@@ -13,9 +13,9 @@ import { client } from "../../redis/redis.js";
 export const generateAccessToken = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const uuid = uuidv4();
     yield client.set(uuid, userId, {
-        EX: 900 //15 min
+        EX: 60 * 30 //30 min
     });
-    return jwt.sign({ uuid }, process.env.JWT_ACCESS_SECRET, { expiresIn: '15Minutes' });
+    return jwt.sign({ uuid }, process.env.JWT_ACCESS_SECRET, { expiresIn: '30Minutes' });
 });
 export const generateRefreshToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '4Weeks' });

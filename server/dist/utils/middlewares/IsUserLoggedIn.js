@@ -16,7 +16,7 @@ export const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0,
         //get from redis
         const userId = yield client.get(uuid);
         if (!userId) {
-            throw new AppError('Invalid token', 401);
+            throw new AppError('Invalid token , Unauthorized user', 401);
         }
         //TODO:Remove in production
         console.log(userId);

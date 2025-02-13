@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { model, Schema } from 'mongoose';
-const commentSchema = new Schema({
+const CommentSchema = new Schema({
     content: {
         type: String,
         required: [true, 'Comment content is required'],
@@ -51,20 +51,20 @@ const commentSchema = new Schema({
     toObject: { virtuals: true }
 });
 // Indexes
-commentSchema.index({ createdAt: -1 });
-commentSchema.index({ post: 1, createdAt: -1 });
-commentSchema.index({ author: 1, createdAt: -1 });
-commentSchema.index({ parentComment: 1, createdAt: -1 });
+CommentSchema.index({ createdAt: -1 });
+CommentSchema.index({ post: 1, createdAt: -1 });
+CommentSchema.index({ author: 1, createdAt: -1 });
+CommentSchema.index({ parentComment: 1, createdAt: -1 });
 // Add virtual for likes count
-commentSchema.virtual('likesCount').get(function () {
+CommentSchema.virtual('likesCount').get(function () {
     return this.likes.length;
 });
 // Add virtual for replies count
-commentSchema.virtual('repliesCount').get(function () {
+CommentSchema.virtual('repliesCount').get(function () {
     return this.replies.length;
 });
 // Middleware to handle replies
-commentSchema.pre('save', function (next) {
+CommentSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             if (this.isNew && this.parentComment) {
@@ -78,7 +78,7 @@ commentSchema.pre('save', function (next) {
     });
 });
 // Middleware to handle comment deletion
-commentSchema.pre('deleteOne', { document: true, query: false }, function (next) {
+CommentSchema.pre('deleteOne', { document: true, query: false }, function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Remove this comment's ID from parent's replies array if it's a reply
@@ -97,7 +97,7 @@ commentSchema.pre('deleteOne', { document: true, query: false }, function (next)
     });
 });
 // Static method to get replies tree
-commentSchema.statics.getRepliesTree = function (commentId) {
+CommentSchema.statics.getRepliesTree = function (commentId) {
     return __awaiter(this, void 0, void 0, function* () {
         return this.findById(commentId)
             .populate({
@@ -120,9 +120,9 @@ commentSchema.statics.getRepliesTree = function (commentId) {
     });
 };
 // Helper method to check if user has liked the comment
-commentSchema.methods.isLikedByUser = function (userId) {
+CommentSchema.methods.isLikedByUser = function (userId) {
     return this.likes.some((likeId) => likeId.toString() === userId.toString());
 };
-const Comment = model('Comment', commentSchema);
+const Comment = model('Comment', CommentSchema);
 export { Comment };
 //# sourceMappingURL=commentModel.js.map

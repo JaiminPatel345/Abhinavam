@@ -12,7 +12,7 @@ export const verifyToken: IMiddleware['verifyToken'] = async (req, res, next) =>
     const userId = await client.get(uuid)
 
     if (!userId) {
-      throw new AppError('Invalid token', 401)
+      throw new AppError('Invalid token , Unauthorized user', 401)
     }
 
     //TODO:Remove in production

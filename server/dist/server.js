@@ -31,9 +31,9 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         // Connect to MongoDB
         connectDB();
         // Routes
-        app.use('/auth', authRouter);
-        app.use('/token', tokenRoute);
         app.use('/post', postRoute);
+        app.use('/token', tokenRoute);
+        app.use('/auth', authRouter);
         // Health check route
         app.get("/", (req, res) => {
             res.json({ message: "Connected" });

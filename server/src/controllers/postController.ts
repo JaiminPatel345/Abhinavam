@@ -1,14 +1,18 @@
 import {Request, Response} from 'express';
 import {AppError, formatResponse, TypedRequestBody} from "../types/custom.types.js";
-import {Post} from "../models/postModel.js";
+import {IReaction, Post} from "../models/postModel.js";
 import {CreatePostBody, ReactionBody, UpdatePostBody} from "../types/post.types.js";
+import mongoose from "mongoose";
+import User from "../models/userModel.js";
+
+const {ObjectId} = mongoose.Types;
 
 
 // Create a new post
 const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) => {
   try {
     const {description, tags, location} = req.body;
-    const userId = req.user?._id;
+    const userId = req.userId;
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -22,6 +26,7 @@ const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) 
     };
 
     const post = await Post.create(postData);
+    await User.findByIdAndUpdate(userId, {$push: {posts: post._id}});
 
     res.status(201).json(formatResponse(true, 'Post created successfully', post));
   } catch (error: any) {
@@ -55,7 +60,7 @@ const getPost = async (req: Request, res: Response) => {
 // Update post
 const updatePost = async (req: TypedRequestBody<UpdatePostBody>, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = req.userId
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -88,7 +93,7 @@ const updatePost = async (req: TypedRequestBody<UpdatePostBody>, res: Response) 
 // Delete post
 const deletePost = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = req.userId
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -116,7 +121,8 @@ const deletePost = async (req: Request, res: Response) => {
 const addReaction = async (req: TypedRequestBody<ReactionBody>, res: Response) => {
   try {
     const {type} = req.body;
-    const userId = req.user?._id;
+
+    const userId = req.userId
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -129,7 +135,7 @@ const addReaction = async (req: TypedRequestBody<ReactionBody>, res: Response) =
     }
 
     const existingReactionIndex = post.reactions.findIndex(
-        (r: any) => r.user.toString() === userId.toString()
+        (r: IReaction) => r.user.toString() === userId.toString()
     );
 
     if (existingReactionIndex !== -1) {
@@ -137,7 +143,7 @@ const addReaction = async (req: TypedRequestBody<ReactionBody>, res: Response) =
     } else {
       post.reactions.push({
         type,
-        user: userId,
+        user: new ObjectId(userId),
         createdAt: new Date(),
       });
     }
@@ -156,7 +162,7 @@ const addReaction = async (req: TypedRequestBody<ReactionBody>, res: Response) =
 // Remove reaction
 const removeReaction = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?._id;
+    const userId = req.userId
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -187,7 +193,7 @@ const getUserPosts = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const userId = req.params.userId || req.user?._id;
+    const userId = req.params.userId || req.userId
 
     if (!userId) {
       throw new AppError('User ID is required', 400);
@@ -209,6 +215,29 @@ const getUserPosts = async (req: Request, res: Response) => {
   }
 }
 
+const getAllPosts = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+
+    const posts = await Post.find({isArchived: false})
+        .sort({createdAt: -1})
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('owner', 'username avatar')
+        .populate('comments');
+
+    res.json(formatResponse(true, 'Posts retrieved successfully', posts));
+
+  } catch (error: any) {
+    console.error('Error fetching user posts:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(false, error.message || 'Error fetching  posts')
+    );
+  }
+}
+
 export default {
   createPost,
   getPost,
@@ -217,4 +246,6 @@ export default {
   addReaction,
   removeReaction,
   getUserPosts,
+  getAllPosts,
+
 }

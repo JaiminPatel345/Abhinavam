@@ -10,13 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { AppError, formatResponse } from "../types/custom.types.js";
 import { Post } from "../models/postModel.js";
 import { Comment } from "../models/commentModel.js";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 // Individual controller methods approach
-export const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { content, postId, parentCommentId } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const userId = req.userId;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
         }
@@ -49,7 +48,7 @@ export const createComment = (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error creating comment'));
     }
 });
-export const getPostComments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getPostComments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -90,11 +89,10 @@ export const getPostComments = (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error fetching comments'));
     }
 });
-export const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { content } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const userId = req.userId;
         const commentId = req.params.id;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
@@ -116,10 +114,9 @@ export const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error updating comment'));
     }
 });
-export const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const userId = req.userId;
         const commentId = req.params.id;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
@@ -147,10 +144,9 @@ export const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, fun
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error deleting comment'));
     }
 });
-export const toggleLike = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+const toggleLike = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+        const userId = new mongoose.Types.ObjectId(req.userId);
         const commentId = req.params.id;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
@@ -174,7 +170,7 @@ export const toggleLike = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error toggling like'));
     }
 });
-export const getReplies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getReplies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
         const page = parseInt(req.query.page) || 1;
@@ -199,4 +195,12 @@ export const getReplies = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error fetching replies'));
     }
 });
+export default {
+    createComment,
+    getPostComments,
+    updateComment,
+    deleteComment,
+    toggleLike,
+    getReplies,
+};
 //# sourceMappingURL=commentController.js.map

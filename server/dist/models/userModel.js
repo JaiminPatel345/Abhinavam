@@ -112,6 +112,11 @@ const UserSchema = new mongoose.Schema({
         },
         default: []
     },
+    //post
+    posts: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Post',
+        }],
     // Registration Process Tracking
     registrationStage: {
         type: Number,

@@ -65,15 +65,12 @@ export const validateProfileCompletion = (req: Request, res: Response, next: Nex
   next();
 };
 
-interface JwtPayload {
-  id: string;
-}
 
 // Extend Express Request type to include user
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      userId?: string;
     }
   }
 }
@@ -139,3 +136,4 @@ export const isValidatedEmail = (
   next()
 
 }
+

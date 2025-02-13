@@ -7,13 +7,13 @@ export const generateAccessToken = async (userId: string): Promise<string> => {
   const uuid = uuidv4();
 
   await client.set(uuid, userId, {
-    EX: 900 //15 min
+    EX: 60 * 30 //30 min
   });
 
   return jwt.sign(
       {uuid},
       process.env.JWT_ACCESS_SECRET as string,
-      {expiresIn: '15Minutes'}
+      {expiresIn: '30Minutes'}
   );
 };
 
