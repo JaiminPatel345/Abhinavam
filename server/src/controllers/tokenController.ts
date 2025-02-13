@@ -1,9 +1,9 @@
-import {formatResponse} from "../utils/formatResponse.js";
 import checkTokens from "../utils/tokens/checkTokens.js";
 import {Request, Response} from "express";
 import User from "../models/userModel.js";
-import {AppError} from "../utils/errors/helpers.js";
 import {getTokens} from "../utils/tokens/getJwtToken.js";
+import {AppError, formatResponse} from "../types/custom.types.js";
+
 
 
 const giveNewTokens = async (req:Request , res:Response ) => {

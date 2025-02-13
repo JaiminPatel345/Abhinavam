@@ -1,7 +1,6 @@
 import {IMiddleware} from "../../types/common.types.js";
 import {client} from "../../redis/redis.js";
-import {AppError} from "../errors/helpers.js";
-import {formatResponse} from "../formatResponse.js";
+import {formatResponse, AppError} from "../../types/custom.types.js";
 import checkTokens from "../tokens/checkTokens.js";
 
 export const verifyToken: IMiddleware['verifyToken'] = async (req, res, next) => {

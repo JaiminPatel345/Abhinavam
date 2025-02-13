@@ -5,11 +5,10 @@ import {getEmailAndOtp, incrementWrongAttempts, removeEmailAndOtp} from '../redi
 import {getTokens} from "../utils/tokens/getJwtToken.js";
 import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
 import {uploadToCloudinary} from '../utils/cloudinary.js';
-import {AppError} from '../utils/errors/helpers.js';
 import {LogoutUserController, ValidateUserController} from "../types/user.types.js";
 import {MongooseErrorHandler} from "../utils/errors/mongooseErrorHandler.js";
 import handleOtp from "../utils/userUtils/handleOtp.js";
-import {formatResponse} from "../utils/formatResponse.js";
+import {AppError, formatResponse} from "../types/custom.types.js";
 
 // Stage 1: Initial Registration
 const initiateRegistration = async (req: Request, res: Response) => {

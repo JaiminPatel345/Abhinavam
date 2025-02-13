@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import nodemailer from "nodemailer";
-import { AppError } from '../errors/helpers.js'; // Import your AppError
+import { AppError } from "../../types/custom.types.js";
 const sendMail = (senderEmail, otp) => __awaiter(void 0, void 0, void 0, function* () {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

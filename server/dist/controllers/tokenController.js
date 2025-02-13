@@ -7,11 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { formatResponse } from "../utils/formatResponse.js";
 import checkTokens from "../utils/tokens/checkTokens.js";
 import User from "../models/userModel.js";
-import { AppError } from "../utils/errors/helpers.js";
 import { getTokens } from "../utils/tokens/getJwtToken.js";
+import { AppError, formatResponse } from "../types/custom.types.js";
 const giveNewTokens = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = yield checkTokens(req, res, process.env.JWT_REFRESH_SECRET);

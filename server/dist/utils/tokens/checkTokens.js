@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { AppError } from "../errors/helpers.js";
+import { AppError } from "../../types/custom.types.js";
 const checkTokens = (req, res, SECRET) => {
     const bearerHeader = req.headers.authorization;
     // Check if the authorization header is present
@@ -18,7 +18,6 @@ const checkTokens = (req, res, SECRET) => {
                 reject(new AppError("Invalid or expired token", 403));
             }
             else {
-                console.log("decord : ", decoded);
                 resolve(decoded.userId || decoded.uuid);
             }
         });

@@ -1,35 +1,36 @@
 import nodemailer from "nodemailer"
-import { AppError } from '../errors/helpers.js';  // Import your AppError
+import {AppError} from "../../types/custom.types.js";
+
 
 const sendMail = async (senderEmail: string, otp: string) => {
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(senderEmail)) {
-        throw new AppError('Invalid email address format', 400);
-    }
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(senderEmail)) {
+    throw new AppError('Invalid email address format', 400);
+  }
 
-    //TODO: remove in production
-    console.log("OTP:" , otp);
+  //TODO: remove in production
+  console.log("OTP:", otp);
 
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-            user: process.env.NODEMAIL_EMAIL,
-            pass: process.env.NODEMAIL_PASS,
-        },
-    });
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.NODEMAIL_EMAIL,
+      pass: process.env.NODEMAIL_PASS,
+    },
+  });
 
-    try {
-        // Verify transporter connection
-        await transporter.verify();
-    } catch (error) {
-        throw new AppError('Email service not available', 500);
-    }
+  try {
+    // Verify transporter connection
+    await transporter.verify();
+  } catch (error) {
+    throw new AppError('Email service not available', 500);
+  }
 
-    // Update the HTML template to fix formatting issues
-    const htmlTemplate = `
+  // Update the HTML template to fix formatting issues
+  const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -107,23 +108,23 @@ const sendMail = async (senderEmail: string, otp: string) => {
     </html>
     `;
 
-    try {
-        const info = await transporter.sendMail({
-            from: `"KalaVithi" <${process.env.NODEMAIL_EMAIL}>`,
-            to: senderEmail,
-            subject: "Your KalaVithi Login OTP",
-            text: `Your OTP is: ${otp}`,
-            html: htmlTemplate,
-        });
+  try {
+    const info = await transporter.sendMail({
+      from: `"KalaVithi" <${process.env.NODEMAIL_EMAIL}>`,
+      to: senderEmail,
+      subject: "Your KalaVithi Login OTP",
+      text: `Your OTP is: ${otp}`,
+      html: htmlTemplate,
+    });
 
-        console.log("Message sent: %s", info.messageId);
-        return info;
-    } catch (error: any) {
-        if (error.code === 'EENVELOPE') {
-            throw new AppError('Invalid recipient email address', 400);
-        }
-        throw new AppError('Failed to send email', 500);
+    console.log("Message sent: %s", info.messageId);
+    return info;
+  } catch (error: any) {
+    if (error.code === 'EENVELOPE') {
+      throw new AppError('Invalid recipient email address', 400);
     }
+    throw new AppError('Failed to send email', 500);
+  }
 }
 
 export default sendMail;

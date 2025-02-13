@@ -1,8 +1,6 @@
 // authMiddlewares.ts
 import {NextFunction, Request, Response} from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../../models/userModel.js';
-import {formatResponse} from "../formatResponse.js";
+import {formatResponse} from "../../types/custom.types.js";
 
 export const validateInitialRegistration = (req: Request, res: Response, next: NextFunction) => {
   const {name, username, mobile, password} = req.body;

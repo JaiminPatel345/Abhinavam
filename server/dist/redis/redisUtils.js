@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { client } from "./redis.js";
-import { AppError } from "../utils/errors/helpers.js";
+import { AppError } from "../types/custom.types.js";
 const MAX_OTP_ATTEMPTS = 3;
 const OTP_EXPIRY_SECONDS = 60 * 10; // 10 minutes
 /**

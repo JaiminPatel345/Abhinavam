@@ -1,15 +1,15 @@
 // src/server.ts
-import express, { Request, Response } from 'express';
+import express, {Request, Response} from 'express';
 import 'dotenv/config';
-import { connectRedis } from './redis/redis.js';
+import {connectRedis} from './redis/redis.js';
 import connectDB from "./database.js";
 
 // Import routes
 import authRouter from './routes/authRoute.js';
-import { CustomError, CustomErrorHandler } from './types/server.types.js';
-import {formatResponse} from "./utils/formatResponse.js";
+import {CustomErrorHandler} from './types/server.types.js';
 import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
+import {formatResponse} from "./types/custom.types.js";
 
 // Create Express app
 const app = express();
@@ -17,7 +17,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
 
 // Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 
 // Database connections
 const startServer = async () => {
@@ -30,17 +30,17 @@ const startServer = async () => {
 
     // Routes
     app.use('/auth', authRouter);
-    app.use('/token' , tokenRoute);
-    app.use('/post' , postRoute);
+    app.use('/token', tokenRoute);
+    app.use('/post', postRoute);
 
     // Health check route
     app.get("/", (req: Request, res: Response) => {
-      res.json({ message: "Connected" });
+      res.json({message: "Connected"});
     });
 
     // 404 Handler
     app.use((req: Request, res: Response) => {
-      res.status(404).json(formatResponse(false , "Not Route Found" ));
+      res.status(404).json(formatResponse(false, "Not Route Found"));
       return
     });
 
@@ -50,8 +50,8 @@ const startServer = async () => {
 
       // Default to 500 if no status code is set
       const statusCode = error.status || 500;
-      
-      res.status(statusCode).json(formatResponse(false , error.message || "Internal Server Error" , error));
+
+      res.status(statusCode).json(formatResponse(false, error.message || "Internal Server Error", error));
     };
 
     app.use(errorHandler);

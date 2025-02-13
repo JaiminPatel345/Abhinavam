@@ -14,9 +14,9 @@ import { connectRedis } from './redis/redis.js';
 import connectDB from "./database.js";
 // Import routes
 import authRouter from './routes/authRoute.js';
-import { formatResponse } from "./utils/formatResponse.js";
 import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
+import { formatResponse } from "./types/custom.types.js";
 // Create Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;

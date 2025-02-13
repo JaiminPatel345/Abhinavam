@@ -1,4 +1,4 @@
-import { formatResponse } from "../formatResponse.js";
+import { formatResponse } from "../../types/custom.types.js";
 export const validateInitialRegistration = (req, res, next) => {
     const { name, username, mobile, password } = req.body;
     const errors = [];

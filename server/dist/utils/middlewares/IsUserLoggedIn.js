@@ -8,8 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { client } from "../../redis/redis.js";
-import { AppError } from "../errors/helpers.js";
-import { formatResponse } from "../formatResponse.js";
+import { formatResponse, AppError } from "../../types/custom.types.js";
 import checkTokens from "../tokens/checkTokens.js";
 export const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
