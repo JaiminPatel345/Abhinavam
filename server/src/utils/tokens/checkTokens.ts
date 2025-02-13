@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import jwt from "jsonwebtoken";
-import {AppError} from "../errors/helpers.js";
+import {formatResponse, AppError} from "../../types/custom.types.js";
+
 
 const checkTokens = (req: Request, res: Response, SECRET: string): Promise<string> => {
   const bearerHeader = req.headers.authorization;
@@ -23,7 +24,6 @@ const checkTokens = (req: Request, res: Response, SECRET: string): Promise<strin
       if (err) {
         reject(new AppError("Invalid or expired token", 403));
       } else {
-        console.log("decord : " , decoded);
         resolve(decoded.userId || decoded.uuid as string);
       }
     });
