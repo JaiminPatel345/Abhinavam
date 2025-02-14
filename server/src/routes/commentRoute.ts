@@ -11,10 +11,6 @@ router.route("/:commentId")
     .delete(verifyToken, commentController.deleteComment);
 
 
-router.route("/:postId/comment")
-    .get(verifyToken, commentController.getPostComments)
-    .post(verifyToken, commentController.createComment)
-
 router.route("/:commentId/like")
     .post(verifyToken, likeLimiter, commentController.toggleLike)
 

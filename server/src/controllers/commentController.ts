@@ -7,76 +7,55 @@ import mongoose, {Types} from "mongoose";
 
 
 // Individual controller methods approach
-const createComment = async (req: TypedRequestBody<CreateCommentBody>, res: Response) => {
+const createComment = async (
+    req: TypedRequestBody<CreateCommentBody>,
+    res: Response
+) => {
   try {
-    const {postId} = req.params;
-    const {content, parentCommentId} = req.body;
-    const userId = req.userId;
+    const postId = req.params.id;
+    if (!postId) {
+      throw new AppError('Post not found', 404)
+    }
 
+    const {content, parentCommentId} = req.body;
+    const userId = req.userId
     if (!userId) {
       throw new AppError('User not authenticated', 401);
     }
 
-    // Use Promise.all for parallel queries
-    const [post, parentComment] = await Promise.all([
-      Post.findById(postId),
-      parentCommentId ? Comment.findById(parentCommentId) : null
-    ]);
-
+    const post = await Post.findById(postId);
     if (!post) {
       throw new AppError('Post not found', 404);
     }
 
-    if (parentCommentId && !parentComment) {
-      throw new AppError('Parent comment not found', 404);
+    // If this is a reply, verify parent comment exists
+    if (parentCommentId) {
+      const parentComment = await Comment.findById(parentCommentId);
+      if (!parentComment) {
+        throw new AppError('Parent comment not found', 404);
+      }
     }
 
-    // Start a session for transaction
-    const session = await mongoose.startSession();
-    let newComment;
+    const comment = await Comment.create({
+      content,
+      author: userId,
+      post: postId,
+      parentComment: parentCommentId || null,
+    });
 
-    try {
-      await session.withTransaction(async () => {
-        // Create comment with populate in same query
-        newComment = await Comment.create([{
-          content,
-          author: userId,
-          post: postId,
-          parentComment: parentCommentId || null
-        }], {session});
-
-        newComment = newComment[0]; // Create returns array
-
-        // Update parent document in same transaction
-        if (parentCommentId) {
-          await Comment.findByIdAndUpdate(
-              parentCommentId,
-              {$push: {replies: newComment._id}},
-              {session}
-          );
-        } else {
-          await Post.findByIdAndUpdate(
-              postId,
-              {$push: {comments: newComment._id}},
-              {session}
-          );
-        }
-
-        // Populate in same transaction
-        await Comment.populate(newComment, {
-          path: 'author',
-          select: 'username avatar'
-        });
+    if (parentCommentId) {
+      await Comment.findByIdAndUpdate(parentCommentId, {$push: {replies: comment._id}})
+    } else {
+      await Post.findByIdAndUpdate(postId, {
+        $push: {comments: comment._id}
       });
-
-      await session.endSession();
-    } catch (error) {
-      await session.endSession();
-      throw error;
     }
+
+    const populatedComment = await Comment.findById(comment._id)
+        .populate('author', 'username avatar');
 
     res.status(201).json(
-        formatResponse(true, 'Comment created successfully', newComment)
+        formatResponse(true, 'Comment created successfully', populatedComment)
     );
   } catch (error: any) {
     console.error('Error in comment creation:', error);
@@ -84,13 +63,14 @@ const createComment = async (req: TypedRequestBody<CreateCommentBody>, res: Resp
         formatResponse(false, error.message || 'Error creating comment')
     );
   }
+
 };
 
 const getPostComments = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const postId = req.params.postId;
+    const postId = req.params.id;
 
     if (!Types.ObjectId.isValid(postId)) {
       throw new AppError('Invalid post ID', 400);
@@ -144,7 +124,7 @@ const updateComment = async (
   try {
     const {content} = req.body;
     const userId = req.userId;
-    const commentId = req.params.id;
+    const commentId = req.params.commentId;
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -172,7 +152,7 @@ const updateComment = async (
 const deleteComment = async (req: Request, res: Response) => {
   try {
     const userId = req.userId
-    const commentId = req.params.id;
+    const commentId = req.params.commentId;
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);

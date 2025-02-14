@@ -238,6 +238,29 @@ const getAllPosts = async (req: Request, res: Response) => {
   }
 }
 
+const toggleArchive = async (req: Request, res: Response) => {
+  try{
+    const postId = req.params.id;
+    const userId = req.userId
+    const post = await Post.findById(postId);
+    if (!post) {
+      throw new AppError('Post not found', 404);
+    }
+    if(post.owner.toString() !== userId) {
+      throw new AppError('Unauthorized user', 404);
+    }
+    const isArchived = post.isArchived;
+    post.isArchived = !isArchived;
+    post.save()
+    res.json(formatResponse(true, `${!isArchived ? 'Archived' : 'Unarchived'}  successfully`, post));
+  }catch (error: any) {
+    console.error('Error fetching user posts:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(false, error.message || 'Error fetching  posts')
+    );
+  }
+}
+
 export default {
   createPost,
   getPost,
@@ -247,5 +270,6 @@ export default {
   removeReaction,
   getUserPosts,
   getAllPosts,
+  toggleArchive,
 
 }
