@@ -14,7 +14,11 @@ import mongoose, { Types } from "mongoose";
 // Individual controller methods approach
 const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { content, postId, parentCommentId } = req.body;
+        const postId = req.params.id;
+        if (!postId) {
+            throw new AppError('Post not found', 404);
+        }
+        const { content, parentCommentId } = req.body;
         const userId = req.userId;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
@@ -36,9 +40,14 @@ const createComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             post: postId,
             parentComment: parentCommentId || null,
         });
-        yield Post.findByIdAndUpdate(postId, {
-            $push: { comments: comment._id }
-        });
+        if (parentCommentId) {
+            yield Comment.findByIdAndUpdate(parentCommentId, { $push: { replies: comment._id } });
+        }
+        else {
+            yield Post.findByIdAndUpdate(postId, {
+                $push: { comments: comment._id }
+            });
+        }
         const populatedComment = yield Comment.findById(comment._id)
             .populate('author', 'username avatar');
         res.status(201).json(formatResponse(true, 'Comment created successfully', populatedComment));
@@ -52,29 +61,32 @@ const getPostComments = (req, res) => __awaiter(void 0, void 0, void 0, function
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const postId = req.params.postId;
+        const postId = req.params.id;
         if (!Types.ObjectId.isValid(postId)) {
             throw new AppError('Invalid post ID', 400);
         }
-        const comments = yield Comment.find({
-            post: postId,
-            parentComment: null // Only get top-level comments
-        })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .populate('author', 'username avatar')
-            .populate({
-            path: 'replies',
-            populate: {
-                path: 'author',
-                select: 'username avatar'
-            }
-        });
-        const total = yield Comment.countDocuments({
-            post: postId,
-            parentComment: null
-        });
+        const [comments, total] = yield Promise.all([
+            Comment.find({
+                post: postId,
+                parentComment: null // Only get top-level comments
+            })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .populate('author', 'username avatar')
+                .populate({
+                path: 'replies',
+                populate: {
+                    path: 'author',
+                    select: 'username avatar'
+                }
+            })
+                .lean(),
+            Comment.countDocuments({
+                post: postId,
+                parentComment: null
+            })
+        ]);
         res.json(formatResponse(true, 'Comments retrieved successfully', {
             comments,
             pagination: {
@@ -93,15 +105,12 @@ const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { content } = req.body;
         const userId = req.userId;
-        const commentId = req.params.id;
+        const commentId = req.params.commentId;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
         }
-        const comment = yield Comment.findOne({
-            _id: commentId,
-            author: userId
-        });
-        if (!comment) {
+        const comment = yield Comment.findById(commentId);
+        if (!comment || comment.author.toString() !== userId) {
             throw new AppError('Comment not found or unauthorized', 404);
         }
         comment.content = content;
@@ -117,15 +126,12 @@ const updateComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
-        const commentId = req.params.id;
+        const commentId = req.params.commentId;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
         }
-        const comment = yield Comment.findOne({
-            _id: commentId,
-            author: userId
-        });
-        if (!comment) {
+        const comment = yield Comment.findById(commentId);
+        if (!comment || comment.author.toString() !== userId) {
             throw new AppError('Comment not found or unauthorized', 404);
         }
         // Remove comment from post's comments array
@@ -134,7 +140,7 @@ const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
         // If this is a parent comment, delete all replies
         if (!comment.parentComment) {
-            yield Comment.deleteMany({ parentComment: commentId });
+            comment.replies.map((c) => Comment.findByIdAndDelete(c));
         }
         yield comment.deleteOne();
         res.json(formatResponse(true, 'Comment deleted successfully'));
@@ -147,7 +153,7 @@ const deleteComment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 const toggleLike = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = new mongoose.Types.ObjectId(req.userId);
-        const commentId = req.params.id;
+        const commentId = req.params.commentId;
         if (!userId) {
             throw new AppError('User not authenticated', 401);
         }
@@ -172,15 +178,18 @@ const toggleLike = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 const getReplies = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
+        const { commentId } = req.params;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const replies = yield Comment.find({ parentComment: id })
-            .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .populate('author', 'username avatar');
-        const total = yield Comment.countDocuments({ parentComment: id });
+        const [replies, total] = yield Promise.all([
+            Comment.find({ parentComment: commentId })
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .populate('author', 'username avatar')
+                .lean(),
+            Comment.countDocuments({ parentComment: commentId })
+        ]);
         res.json(formatResponse(true, 'Replies retrieved successfully', {
             replies,
             pagination: {

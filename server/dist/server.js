@@ -16,6 +16,7 @@ import connectDB from "./database.js";
 import authRouter from './routes/authRoute.js';
 import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
+import commentRoute from "./routes/commentRoute.js";
 import { formatResponse } from "./types/custom.types.js";
 // Create Express app
 const app = express();
@@ -31,8 +32,9 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         // Connect to MongoDB
         connectDB();
         // Routes
-        app.use('/post', postRoute);
-        app.use('/token', tokenRoute);
+        app.use('/comments', commentRoute);
+        app.use('/posts', postRoute);
+        app.use('/tokens', tokenRoute);
         app.use('/auth', authRouter);
         // Health check route
         app.get("/", (req, res) => {

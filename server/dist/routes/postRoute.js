@@ -2,6 +2,8 @@ import express from "express";
 import postController from "../controllers/postController.js";
 import { verifyToken } from "../utils/middlewares/IsUserLoggedIn.js";
 import '../models/commentModel.js';
+import commentController from "../controllers/commentController.js";
+import { commentLimiter, likeLimiter } from "../utils/middlewares/rateLimit.js";
 const router = express.Router();
 router.route("/")
     .get(postController.getAllPosts)
@@ -11,9 +13,14 @@ router.route("/:id")
     .put(verifyToken, postController.updatePost)
     .delete(verifyToken, postController.deletePost);
 router.route("/:id/reaction")
-    .post(verifyToken, postController.addReaction)
+    .post(verifyToken, likeLimiter, postController.addReaction)
     .delete(verifyToken, postController.removeReaction);
 router.route("/user/:userId")
     .get(postController.getUserPosts);
+router.route("/:id/archive")
+    .post(verifyToken, postController.toggleArchive);
+router.route("/:id/comment")
+    .get(verifyToken, commentController.getPostComments)
+    .post(verifyToken, commentLimiter, commentController.createComment);
 export default router;
 //# sourceMappingURL=postRoute.js.map

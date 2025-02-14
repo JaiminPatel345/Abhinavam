@@ -23,7 +23,10 @@ router.route("/:id/reaction")
 router.route("/user/:userId")
     .get(postController.getUserPosts)
 
-router.route("/:postId/comment")
+router.route("/:id/archive")
+    .post(verifyToken , postController.toggleArchive)
+
+router.route("/:id/comment")
     .get(verifyToken, commentController.getPostComments)
     .post(verifyToken, commentLimiter, commentController.createComment)
 
