@@ -7,47 +7,76 @@ import mongoose, {Types} from "mongoose";
 
 
 // Individual controller methods approach
-const createComment = async (
-    req: TypedRequestBody<CreateCommentBody>,
-    res: Response
-) => {
+const createComment = async (req: TypedRequestBody<CreateCommentBody>, res: Response) => {
   try {
-    const {content, postId, parentCommentId} = req.body;
-    const userId = req.userId
+    const {postId} = req.params;
+    const {content, parentCommentId} = req.body;
+    const userId = req.userId;
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
     }
 
-    const post = await Post.findById(postId);
+    // Use Promise.all for parallel queries
+    const [post, parentComment] = await Promise.all([
+      Post.findById(postId),
+      parentCommentId ? Comment.findById(parentCommentId) : null
+    ]);
+
     if (!post) {
       throw new AppError('Post not found', 404);
     }
 
-    // If this is a reply, verify parent comment exists
-    if (parentCommentId) {
-      const parentComment = await Comment.findById(parentCommentId);
-      if (!parentComment) {
-        throw new AppError('Parent comment not found', 404);
-      }
+    if (parentCommentId && !parentComment) {
+      throw new AppError('Parent comment not found', 404);
     }
 
-    const comment = await Comment.create({
-      content,
-      author: userId,
-      post: postId,
-      parentComment: parentCommentId || null,
-    });
+    // Start a session for transaction
+    const session = await mongoose.startSession();
+    let newComment;
 
-    await Post.findByIdAndUpdate(postId, {
-      $push: {comments: comment._id}
-    });
+    try {
+      await session.withTransaction(async () => {
+        // Create comment with populate in same query
+        newComment = await Comment.create([{
+          content,
+          author: userId,
+          post: postId,
+          parentComment: parentCommentId || null
+        }], {session});
 
-    const populatedComment = await Comment.findById(comment._id)
-        .populate('author', 'username avatar');
+        newComment = newComment[0]; // Create returns array
+
+        // Update parent document in same transaction
+        if (parentCommentId) {
+          await Comment.findByIdAndUpdate(
+              parentCommentId,
+              {$push: {replies: newComment._id}},
+              {session}
+          );
+        } else {
+          await Post.findByIdAndUpdate(
+              postId,
+              {$push: {comments: newComment._id}},
+              {session}
+          );
+        }
+
+        // Populate in same transaction
+        await Comment.populate(newComment, {
+          path: 'author',
+          select: 'username avatar'
+        });
+      });
+
+      await session.endSession();
+    } catch (error) {
+      await session.endSession();
+      throw error;
+    }
 
     res.status(201).json(
-        formatResponse(true, 'Comment created successfully', populatedComment)
+        formatResponse(true, 'Comment created successfully', newComment)
     );
   } catch (error: any) {
     console.error('Error in comment creation:', error);
@@ -67,26 +96,30 @@ const getPostComments = async (req: Request, res: Response) => {
       throw new AppError('Invalid post ID', 400);
     }
 
-    const comments = await Comment.find({
-      post: postId,
-      parentComment: null // Only get top-level comments
-    })
-        .sort({createdAt: -1})
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate('author', 'username avatar')
-        .populate({
-          path: 'replies',
-          populate: {
-            path: 'author',
-            select: 'username avatar'
-          }
-        });
 
-    const total = await Comment.countDocuments({
-      post: postId,
-      parentComment: null
-    });
+    const [comments, total] = await Promise.all([
+      Comment.find({
+        post: postId,
+        parentComment: null // Only get top-level comments
+      })
+          .sort({createdAt: -1})
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate('author', 'username avatar')
+          .populate({
+            path: 'replies',
+            populate: {
+              path: 'author',
+              select: 'username avatar'
+            }
+          })
+          .lean()
+      ,
+      Comment.countDocuments({
+        post: postId,
+        parentComment: null
+      })
+    ])
 
     res.json(formatResponse(true, 'Comments retrieved successfully', {
       comments,
@@ -117,12 +150,9 @@ const updateComment = async (
       throw new AppError('User not authenticated', 401);
     }
 
-    const comment = await Comment.findOne({
-      _id: commentId,
-      author: userId
-    });
+    const comment = await Comment.findById(commentId);
 
-    if (!comment) {
+    if (!comment || comment.author.toString() !== userId) {
       throw new AppError('Comment not found or unauthorized', 404);
     }
 
@@ -148,12 +178,9 @@ const deleteComment = async (req: Request, res: Response) => {
       throw new AppError('User not authenticated', 401);
     }
 
-    const comment = await Comment.findOne({
-      _id: commentId,
-      author: userId
-    });
+    const comment = await Comment.findById(commentId);
 
-    if (!comment) {
+    if (!comment || comment.author.toString() !== userId) {
       throw new AppError('Comment not found or unauthorized', 404);
     }
 
@@ -164,7 +191,7 @@ const deleteComment = async (req: Request, res: Response) => {
 
     // If this is a parent comment, delete all replies
     if (!comment.parentComment) {
-      await Comment.deleteMany({parentComment: commentId});
+      comment.replies.map((c) => Comment.findByIdAndDelete(c))
     }
 
     await comment.deleteOne();
@@ -181,7 +208,7 @@ const deleteComment = async (req: Request, res: Response) => {
 const toggleLike = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.userId);
-    const commentId = req.params.id;
+    const commentId = req.params.commentId;
 
     if (!userId) {
       throw new AppError('User not authenticated', 401);
@@ -218,17 +245,21 @@ const toggleLike = async (req: Request, res: Response) => {
 
 const getReplies = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params;
+    const {commentId} = req.params;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const replies = await Comment.find({parentComment: id})
-        .sort({createdAt: -1})
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate('author', 'username avatar');
+    const [replies, total] = await Promise.all([
+      Comment.find({parentComment: commentId})
+          .sort({createdAt: -1})
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate('author', 'username avatar')
+          .lean()
+      ,
+      Comment.countDocuments({parentComment: commentId})
+    ])
 
-    const total = await Comment.countDocuments({parentComment: id});
 
     res.json(formatResponse(true, 'Replies retrieved successfully', {
       replies,
