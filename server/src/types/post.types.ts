@@ -63,7 +63,6 @@ export interface ReactionBody {
 
 export interface CreateCommentBody {
   content: string;
-  postId: string;
   parentCommentId?: string;
 }
 

@@ -9,6 +9,7 @@ import authRouter from './routes/authRoute.js';
 import {CustomErrorHandler} from './types/server.types.js';
 import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
+import commentRoute from "./routes/commentRoute.js";
 import {formatResponse} from "./types/custom.types.js";
 
 // Create Express app
@@ -29,8 +30,9 @@ const startServer = async () => {
     connectDB();
 
     // Routes
-    app.use('/post', postRoute);
-    app.use('/token', tokenRoute);
+    app.use('/comments', commentRoute);
+    app.use('/posts', postRoute);
+    app.use('/tokens', tokenRoute);
     app.use('/auth', authRouter);
 
     // Health check route

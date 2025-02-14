@@ -28,13 +28,13 @@ const CommentSchema = new Schema<IComment, CommentModel>({
   },
   parentComment: {
     type: Schema.Types.ObjectId,
-    ref: 'Comment', // Fixed: Changed from 'CommentModel' to 'Comment'
+    ref: 'Comment',
     default: null,
     index: true,
   },
   replies: [{
     type: Schema.Types.ObjectId,
-    ref: 'Comment', // Fixed: Changed from 'CommentModel' to 'Comment'
+    ref: 'Comment',
   }],
   likes: [{
     type: Schema.Types.ObjectId,
