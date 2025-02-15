@@ -13,9 +13,9 @@ import {AppError, formatResponse} from "../types/custom.types.js";
 // Stage 1: Initial Registration
 const initiateRegistration = async (req: Request, res: Response) => {
   try {
-    const {name, username, email, mobile, password} = req.body;
+    const {name, username, email, password} = req.body;
 
-    // Check existing username and mobile
+    // Check existing username and email
     const existingUser = await User.findOne({
       //TODO: also check for mobile
       $or: [{username}, {email}]
@@ -32,7 +32,6 @@ const initiateRegistration = async (req: Request, res: Response) => {
       name,
       username,
       email,
-      mobile,
       password: hashedPassword,
       registrationStage: 1
     });
@@ -49,13 +48,11 @@ const initiateRegistration = async (req: Request, res: Response) => {
     console.error('Error in registration initiation:', error);
 
     //first handle mongoose error
-    MongooseErrorHandler.handle(error, res);
 
-    if (error instanceof AppError) {
-      res.status(error.statusCode).json(formatResponse(false, error.message));
-      return
+    if (MongooseErrorHandler.handle(error, res)) {
+      res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
     }
-    res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
+
   }
 };
 
@@ -87,7 +84,7 @@ const verifyOtp = async (req: Request, res: Response) => {
     }
 
     await removeEmailAndOtp(email);
-    const tokens = await getTokens(user._id as string);
+    const tokens = await getTokens(user._id.toString());
 
 
     res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
@@ -139,7 +136,7 @@ const completeProfile = async (req: Request, res: Response) => {
       throw new AppError('User not found', 404);
     }
 
-    const tokens = await getTokens(user._id as string);
+    const tokens = await getTokens(user._id.toString());
 
     res.json(formatResponse(true, 'Registration completed successfully', {
       user: {
@@ -214,7 +211,7 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
     }
 
     const validatedUser = await validatePassword(password, user, isEmail);
-    const tokens = await getTokens(validatedUser._id as string);
+    const tokens = await getTokens(validatedUser._id.toString());
 
     res.json(formatResponse(true, 'Login successful', {
       user,

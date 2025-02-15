@@ -18,8 +18,8 @@ import { AppError, formatResponse } from "../types/custom.types.js";
 // Stage 1: Initial Registration
 const initiateRegistration = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name, username, email, mobile, password } = req.body;
-        // Check existing username and mobile
+        const { name, username, email, password } = req.body;
+        // Check existing username and email
         const existingUser = yield User.findOne({
             //TODO: also check for mobile
             $or: [{ username }, { email }]
@@ -34,7 +34,6 @@ const initiateRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
             name,
             username,
             email,
-            mobile,
             password: hashedPassword,
             registrationStage: 1
         });
@@ -47,12 +46,9 @@ const initiateRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         console.error('Error in registration initiation:', error);
         //first handle mongoose error
-        MongooseErrorHandler.handle(error, res);
-        if (error instanceof AppError) {
-            res.status(error.statusCode).json(formatResponse(false, error.message));
-            return;
+        if (MongooseErrorHandler.handle(error, res)) {
+            res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
         }
-        res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error during registration initiation'));
     }
 });
 // Stage 2: OTP Verification
@@ -74,7 +70,7 @@ const verifyOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             throw new AppError('User not found', 404);
         }
         yield removeEmailAndOtp(email);
-        const tokens = yield getTokens(user._id);
+        const tokens = yield getTokens(user._id.toString());
         res.json(formatResponse(true, 'OTP verified successfully. Please complete your profile.', {
             user,
             tokens,
@@ -113,7 +109,7 @@ const completeProfile = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (!user) {
             throw new AppError('User not found', 404);
         }
-        const tokens = yield getTokens(user._id);
+        const tokens = yield getTokens(user._id.toString());
         res.json(formatResponse(true, 'Registration completed successfully', {
             user: {
                 id: user._id,
@@ -170,7 +166,7 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             throw new AppError(`No user found with this ${isEmail ? 'email' : 'username'}`, 401);
         }
         const validatedUser = yield validatePassword(password, user, isEmail);
-        const tokens = yield getTokens(validatedUser._id);
+        const tokens = yield getTokens(validatedUser._id.toString());
         res.json(formatResponse(true, 'Login successful', {
             user,
             tokens

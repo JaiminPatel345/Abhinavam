@@ -18,6 +18,7 @@ import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
 import commentRoute from "./routes/commentRoute.js";
 import { formatResponse } from "./types/custom.types.js";
+import userRoute from "./routes/userRoute.js";
 // Create Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
@@ -36,6 +37,7 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
         app.use('/posts', postRoute);
         app.use('/tokens', tokenRoute);
         app.use('/auth', authRouter);
+        app.use('/users', userRoute);
         // Health check route
         app.get("/", (req, res) => {
             res.json({ message: "Connected" });

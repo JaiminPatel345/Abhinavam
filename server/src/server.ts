@@ -11,6 +11,7 @@ import tokenRoute from "./routes/tokenRoute.js";
 import postRoute from "./routes/postRoute.js";
 import commentRoute from "./routes/commentRoute.js";
 import {formatResponse} from "./types/custom.types.js";
+import userRoute from "./routes/userRoute.js";
 
 // Create Express app
 const app = express();
@@ -19,6 +20,15 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: string;
+    }
+  }
+}
 
 // Database connections
 const startServer = async () => {
@@ -29,11 +39,13 @@ const startServer = async () => {
     // Connect to MongoDB
     connectDB();
 
+
     // Routes
     app.use('/comments', commentRoute);
     app.use('/posts', postRoute);
     app.use('/tokens', tokenRoute);
     app.use('/auth', authRouter);
+    app.use('/users',userRoute);
 
     // Health check route
     app.get("/", (req: Request, res: Response) => {

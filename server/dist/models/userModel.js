@@ -54,7 +54,7 @@ const UserSchema = new mongoose.Schema({
     mobile: {
         type: String,
         // required: [true, 'Mobile number is required'],
-        unique: true,
+        // unique: true,
         match: [
             /^\+[1-9]\d{6,14}$/,
             'Please enter a valid mobile number with country code (e.g., +1234567890)',
@@ -74,8 +74,11 @@ const UserSchema = new mongoose.Schema({
     },
     // Stage 3 Fields (Profile Completion)
     avatar: {
-        type: String,
-        default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
+        url: {
+            type: String,
+            default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
+        },
+        path: String,
     },
     about: {
         type: String,
@@ -112,6 +115,15 @@ const UserSchema = new mongoose.Schema({
         },
         default: []
     },
+    //connections
+    followers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        }],
+    following: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        }],
     //post
     posts: [{
             type: mongoose.Schema.Types.ObjectId,

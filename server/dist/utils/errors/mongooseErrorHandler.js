@@ -71,9 +71,10 @@ export class MongooseErrorHandler {
                 // Log unhandled errors for debugging
                 console.error('Unhandled Mongoose Error:', error);
         }
-        if (!errorResponse)
+        if (!!errorResponse) {
+            res.status(errorResponse.statusCode).json(errorResponse);
             return false;
-        res.status(errorResponse.statusCode).json(errorResponse);
+        }
         return true;
     }
 }

@@ -32,7 +32,7 @@ export const validateInitialRegistration = (req: Request, res: Response, next: N
 };
 
 export const validateOtpVerification = (req: Request, res: Response, next: NextFunction) => {
-  const { email, otp} = req.body;
+  const {email, otp} = req.body;
   const errors = [];
 
   if (!email) errors.push('email is required');
@@ -65,15 +65,6 @@ export const validateProfileCompletion = (req: Request, res: Response, next: Nex
   next();
 };
 
-
-// Extend Express Request type to include user
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string;
-    }
-  }
-}
 
 export const validateLoginInput = (
     req: Request,
