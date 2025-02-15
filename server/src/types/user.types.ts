@@ -1,6 +1,6 @@
 // src/types/user.types.ts
 import {Request, Response} from "express";
-import mongoose, {Document} from 'mongoose';
+import mongoose, {Document, Types} from 'mongoose';
 
 // Custom Request types
 export interface TypedRequest<T> extends Request {
@@ -8,15 +8,21 @@ export interface TypedRequest<T> extends Request {
 }
 
 export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId,
   name: string;
   username: string;
   email: string;
-  mobile: string;
+  mobile?: string;
   password: string;
-  avatar: string;
+  avatar: {
+    url: string;
+    path: string;
+  };
   about?: string;
   interests?: string[];
-  profession?: string;
+  profession?: string[];
+  followers: mongoose.Types.ObjectId[];
+  following: mongoose.Types.ObjectId[];
   posts?: mongoose.Types.ObjectId[];
   isMobileVerified: boolean;
   registrationStage: 1 | 2 | 3;
@@ -38,20 +44,6 @@ export interface IUser extends Document {
   checkProfileComplete(): boolean;
 }
 
-export interface IUserResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    username: string;
-    about: string;
-    interest: string[];
-    profession: string[];
-    isEmailVerified: boolean;
-    isMobileVerified: boolean;
-  },
-  token: string;
-}
 
 export interface IRegisterUserRequest {
   name: string;
@@ -109,3 +101,24 @@ export type LogoutUserController = (
     req: Request,
     res: Response
 ) => void;
+
+export interface IToggleFollowingBody {
+  userToFollow: string;
+}
+
+
+export type UserDocument = Document<unknown, {}, IUser> & IUser & {
+  _id: Types.ObjectId; // Explicitly define _id as ObjectId
+  __v: number;         // Include the version key
+} | null;
+
+
+export interface IUpdateUserProfileBody {
+  about?: string;
+  interests?: string[];
+  profession?: string[];
+  avatar?: {
+    url: string;
+    path: string;
+  };
+}

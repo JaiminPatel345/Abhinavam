@@ -3,7 +3,8 @@ import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
 import {IUser} from "../types/user.types.js";
 
-const UserSchema = new mongoose.Schema<IUser>({
+const UserSchema = new mongoose.Schema<IUser>(
+    {
   // Stage 1 Fields
   name: {
     type: String,
@@ -47,7 +48,7 @@ const UserSchema = new mongoose.Schema<IUser>({
   mobile: {
     type: String,
     // required: [true, 'Mobile number is required'],
-    unique: true,
+    // unique: true,
     match: [
       /^\+[1-9]\d{6,14}$/,
       'Please enter a valid mobile number with country code (e.g., +1234567890)',
@@ -69,8 +70,11 @@ const UserSchema = new mongoose.Schema<IUser>({
 
   // Stage 3 Fields (Profile Completion)
   avatar: {
-    type: String,
-    default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
+    url: {
+      type: String,
+      default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
+    },
+    path: String,
   },
   about: {
     type: String,
@@ -106,9 +110,19 @@ const UserSchema = new mongoose.Schema<IUser>({
     default: []
   },
 
+  //connections
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
+
   //post
-  posts:[{
-    type:mongoose.Schema.Types.ObjectId,
+  posts: [{
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
   }],
 

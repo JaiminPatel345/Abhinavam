@@ -41,7 +41,7 @@ export class MongooseErrorHandler {
     };
   }
 
-  public static handle(error: any, res: Response): Boolean {
+  public  static  handle(error: any, res: Response): Boolean {
     let errorResponse: ErrorResponse | null = null;
 
     switch (true) {
@@ -93,9 +93,11 @@ export class MongooseErrorHandler {
         console.error('Unhandled Mongoose Error:', error);
     }
 
-    if (!errorResponse)
-      return false;
-    res.status(errorResponse.statusCode).json(errorResponse);
-    return true
+
+    if (!!errorResponse) {
+      res.status(errorResponse.statusCode).json(errorResponse);
+      return false
+    }
+    return true;
   }
 }
