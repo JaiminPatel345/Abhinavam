@@ -1,6 +1,6 @@
 export type MyButtonProps = {
   title: string; // Required prop for the button text
-  onPressAction: () => void; // Required prop for the onPress action
+  onPressAction: any; // Required prop for the onPress action
   mode?: "text" | "outlined" | "contained"; // Optional prop for button mode
   paddingVertical?: number; // Optional prop for vertical padding
   backgroundColor?: string; // Optional prop for background color

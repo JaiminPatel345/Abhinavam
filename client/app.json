@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "KalaVithi",
-    "scheme": "kalavithi",
-    "slug": "KalaVithi",
+    "name": "Abhinavam",
+    "scheme": "abhinavam",
+    "slug": "Abhinavam",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/kalavithi-logo.png",
+    "icon": "./src/assets/images/abhinavam-logo.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -30,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/kalavithi-logo.png",
+          "image": "./src/assets/images/abhinavam-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

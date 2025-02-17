@@ -4,7 +4,7 @@ import {Button, TextInput} from 'react-native-paper';
 import {Camera, Plus} from 'lucide-react-native';
 import INTERESTS from '@/utils/userUtils/interested';
 import PROFESSIONS from '@/utils/userUtils/professions';
-import {SelectPicker} from '@/app/auth/signup/SelectPicker';
+import SelectPicker from '@/app/auth/signup/SelectPicker';
 import {MyButton} from "@components/ui/Button";
 
 

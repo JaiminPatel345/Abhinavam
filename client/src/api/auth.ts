@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ILoginCredentials } from "@/types/user.types";
+import {ILoginCredentials, IRegisterUserRequest} from "@/types/user.types";
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -9,5 +9,9 @@ export const authAPI = {
       identifier: credentials.email,
       password: credentials.password
     });
+  },
+
+  register: async (credentials: IRegisterUserRequest) => {
+    return axios.post(`${BASE_URL}/auth/register`, credentials);
   }
 };

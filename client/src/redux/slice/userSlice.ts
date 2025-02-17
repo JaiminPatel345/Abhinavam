@@ -1,6 +1,6 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {IUser} from "@/types/user.types";
-import {loginThunk} from "@redux/thunks/authThunk";
+import {loginThunk, signupThunk} from "@redux/thunks/authThunk";
 
 interface AuthState {
   user: IUser | null;
@@ -24,6 +24,9 @@ export const userSlice = createSlice({
       state.user = null;
       state.token = null;
     },
+    setIsLoading: (state, action) => {
+      state.isLoading = action.payload;
+    }
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
@@ -40,9 +43,23 @@ export const userSlice = createSlice({
         .addCase(loginThunk.rejected, (state, action) => {
           state.isLoading = false;
           state.error = action.payload as string;
-        });
+        })
+
+    //signup
+        .addCase(signupThunk.pending, (state) => {
+          state.isLoading = true;
+          state.error = null;
+        })
+        .addCase(signupThunk.fulfilled, (state, action) => {
+          state.isLoading = false;
+        })
+        .addCase(signupThunk.rejected, (state, action) => {
+          state.isLoading = false;
+          state.error = action.payload as string;
+        })
+
   },
 })
 
-export const {logout} = userSlice.actions;
+export const {logout , setIsLoading} = userSlice.actions;
 export default userSlice.reducer;

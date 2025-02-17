@@ -1,13 +1,16 @@
-import {ILoginCredentials} from "@/types/user.types";
-import {loginThunk} from "@redux/thunks/authThunk";
+import {ILoginCredentials, IRegisterUserRequest} from "@/types/user.types";
+import {loginThunk, signupThunk} from "@redux/thunks/authThunk";
 import {useDispatch, useSelector} from 'react-redux';
 import {ThunkDispatch} from "redux-thunk";
 import {clearNotification, showNotification} from "@redux/slice/notificationSlice";
+import {useRouter} from "expo-router";
+import {setIsLoading} from "@redux/slice/userSlice";
 
 
 const useAuth = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const userData = useSelector((state: any) => state.user);
+  const Router = useRouter()
 
   const loginUser = (credentials: ILoginCredentials) => {
     dispatch(clearNotification())
@@ -21,13 +24,33 @@ const useAuth = () => {
 
           })
       )
+      Router.replace('/')
       return;
     }
 
     return dispatch(loginThunk(credentials));
   }
 
-  return {loginUser};
+  const registerUser = (credentials: IRegisterUserRequest) => {
+    dispatch(clearNotification())
+    if (userData && userData.token && userData.token.length > 0) {
+      dispatch(
+          showNotification({
+            message: 'if you want to register with another account, please logout first',
+            type: 'INFO',
+            title: 'Already logged in'
+
+          })
+      )
+      //TODO: optimise this to register reduser
+      dispatch(setIsLoading(false))
+      Router.replace('/')
+      return;
+    }
+    return dispatch(signupThunk(credentials));
+  }
+
+  return {loginUser, registerUser};
 
 }
 

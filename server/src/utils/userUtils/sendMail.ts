@@ -98,11 +98,11 @@ const sendMail = async (senderEmail: string, otp: string) => {
     </head>
     <body>
         <div class="container">
-            <div class="logo">Kala Vithi</div>
+            <div class="logo">Abhinavam</div>
             <div class="message">Your One-Time Password (OTP) is:</div>
             <div class="otp">${otp}</div>
             <div class="message">This OTP will expire in 10 minutes.<br>Do not share it with anyone.</div>
-            <div class="footer">© 2025 KalaVithi. All rights reserved.</div>
+            <div class="footer">© 2025 Abhinavam. All rights reserved.</div>
         </div>
     </body>
     </html>
@@ -110,9 +110,9 @@ const sendMail = async (senderEmail: string, otp: string) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"KalaVithi" <${process.env.NODEMAIL_EMAIL}>`,
+      from: `"Abhinavam" <${process.env.NODEMAIL_EMAIL}>`,
       to: senderEmail,
-      subject: "Your KalaVithi Login OTP",
+      subject: "Your Abhinavam Login OTP",
       text: `Your OTP is: ${otp}`,
       html: htmlTemplate,
     });

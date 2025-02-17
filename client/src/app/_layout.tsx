@@ -38,7 +38,7 @@ export default function RootLayout() {
     'SFProText-Regular': require('@/assets/fonts/SpaceMono-Regular.ttf'),
     'SFProText-Medium': require('@/assets/fonts/Poppins-Medium.ttf'),
     'SFProText-Bold': require('@/assets/fonts/Poppins-Bold.ttf'),
-    'KalaVithi-Logo': require('@/assets/fonts/Poppins-SemiBold.ttf'), // Custom font for logo
+    'Abhinavam-Logo': require('@/assets/fonts/Poppins-SemiBold.ttf'), // Custom font for logo
   });
 
   if (!fontsLoaded) {
@@ -59,7 +59,7 @@ export default function RootLayout() {
                 headerShadowVisible: false,
                 headerTintColor: '#4C585B',
                 headerTitleStyle: {
-                  fontFamily: 'KalaVithi-Logo',
+                  fontFamily: 'Abhinavam-Logo',
                   fontSize: 24,
                   fontWeight: '400',
                 },
@@ -75,7 +75,7 @@ export default function RootLayout() {
                 name="auth"
                 options={{
                   headerShown: false,
-                  title: 'Kala Vithi',
+                  title: 'Abhinavam',
                 }}
               />
 
@@ -99,10 +99,10 @@ export default function RootLayout() {
               <Stack.Screen
                 name="index"
                 options={{
-                  title: 'Kala Vithi',
+                  title: 'Abhinavam',
                   headerLargeTitle: true,
                   headerLargeTitleStyle: {
-                    fontFamily: 'KalaVithi-Logo',
+                    fontFamily: 'Abhinavam-Logo',
                     fontSize: 34,
                   },
                 }}
