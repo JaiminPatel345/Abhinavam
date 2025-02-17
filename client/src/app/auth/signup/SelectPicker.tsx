@@ -3,7 +3,7 @@ import {FlatList, Modal, Text, TouchableOpacity, View} from "react-native";
 import {Button, Chip, Searchbar} from "react-native-paper";
 import {SelectPickerProps} from "@/types/user.types";
 
-export const SelectPicker: React.FC<SelectPickerProps> = ({
+ const SelectPicker: React.FC<SelectPickerProps> = ({
                                                             visible,
                                                             onDismiss,
                                                             title,
@@ -91,3 +91,6 @@ export const SelectPicker: React.FC<SelectPickerProps> = ({
       </Modal>
   );
 };
+
+
+ export default SelectPicker;

@@ -1,6 +1,6 @@
 import * as yup from "yup";
 
-export const validationSignupSchema = yup.object().shape({
+ const validationSignupSchema = yup.object().shape({
   fullName: yup
     .string()
     .required('Full name is required')
@@ -30,3 +30,5 @@ export const validationSignupSchema = yup.object().shape({
     .required('Please confirm your password')
     .oneOf([yup.ref('password')], 'Passwords must match'),
 });
+
+ export default validationSignupSchema;

@@ -3,7 +3,7 @@ export interface IUser {
   name: string;
   email: string;
   username: string;
-  about: string;
+  about?: string;
   interest: string[];
   profession: string[];
   isEmailVerified: boolean;
@@ -51,4 +51,12 @@ export interface SelectPickerProps {
   onSearchChange: (text: string) => void;
   selectedItems: string[];
   onItemSelect: (item: string) => void;
+}
+
+export interface IRegisterUserRequest {
+    name: string;
+    username: string;
+    email: string;
+    password: string;
+    mobile?: string;
 }
