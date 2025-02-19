@@ -3,10 +3,10 @@ export interface IUser {
   name: string;
   email: string;
   username: string;
+  tagLine?: string;
   about?: string;
   interest: string[];
   profession: string[];
-  isEmailVerified: boolean;
   isMobileVerified: boolean;
 }
 
@@ -28,9 +28,11 @@ export interface ILoginCredentials {
 
 
 export interface SignupFormData {
-  name: string;
-  email: string;
+fullName: string;
   username: string;
+  email: string;
+  //TODO: make separate for mobile
+  // mobile: string;
   password: string;
   confirmPassword: string;
 }
@@ -54,9 +56,23 @@ export interface SelectPickerProps {
 }
 
 export interface IRegisterUserRequest {
-    name: string;
-    username: string;
-    email: string;
-    password: string;
-    mobile?: string;
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  // mobile?: string;
+}
+
+export interface IVerifyOtp {
+  otp: string;
+  email: string;
+}
+
+
+export interface AuthState {
+  user: IUser | null;
+  accessToken: string | null;
+  isLoading: boolean;
+  redirectUrl: string | null;
+  // error: string | null;
 }

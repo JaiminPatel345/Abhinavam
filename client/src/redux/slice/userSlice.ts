@@ -1,20 +1,16 @@
 import {createSlice} from "@reduxjs/toolkit";
-import {IUser} from "@/types/user.types";
-import {loginThunk, signupThunk} from "@redux/thunks/authThunk";
+import {AuthState} from "@/types/user.types";
+import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
 
-interface AuthState {
-  user: IUser | null;
-  token: string | null;
-  isLoading: boolean;
-  error: string | null;
-}
 
 const initialState: AuthState = {
   user: null,
-  token: null,
+  accessToken: null,
   isLoading: false,
-  error: null,
+  redirectUrl: null
 }
+
+//TODO: work with token
 
 export const userSlice = createSlice({
   name: "user",
@@ -22,7 +18,8 @@ export const userSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
-      state.token = null;
+      state.accessToken = null;
+      state.redirectUrl = '/'
     },
     setIsLoading: (state, action) => {
       state.isLoading = action.payload;
@@ -33,33 +30,55 @@ export const userSlice = createSlice({
     builder
         .addCase(loginThunk.pending, (state) => {
           state.isLoading = true;
-          state.error = null;
         })
         .addCase(loginThunk.fulfilled, (state, action) => {
           state.user = action.payload.user;
-          state.token = action.payload.token;
+          state.accessToken = action.payload.tokens.accessToken;
           state.isLoading = false;
+          state.redirectUrl = '/'
         })
-        .addCase(loginThunk.rejected, (state, action) => {
+        .addCase(loginThunk.rejected, (state, action: any) => {
           state.isLoading = false;
-          state.error = action.payload as string;
+          if (action.payload.data?.isNeedVerifyOtpVerification) {
+            console.log("redirect to verify otp")
+            state.redirectUrl = '/auth/signup/VerifyOTP'
+            state.user = action.payload.data.user;
+          }
+
         })
 
-    //signup
+        //signup stage1
         .addCase(signupThunk.pending, (state) => {
           state.isLoading = true;
-          state.error = null;
         })
         .addCase(signupThunk.fulfilled, (state, action) => {
+          console.log("action.payload : ", action.payload)
+          state.user = action.payload.user;
           state.isLoading = false;
+          state.redirectUrl = '/auth/signup/VerifyOTP'
+
         })
         .addCase(signupThunk.rejected, (state, action) => {
           state.isLoading = false;
-          state.error = action.payload as string;
         })
 
+        //signup stage 2 : verify otp
+        .addCase(verifyOtpThunk.pending, (state) => {
+              state.isLoading = true;
+            }
+        )
+        .addCase(verifyOtpThunk.fulfilled, (state, action) => {
+          state.user = action.payload.user;
+          state.accessToken = action.payload.tokens.accessToken;
+          state.isLoading = false;
+          state.redirectUrl = '/auth/signup/AdditionalDetails'
+
+        })
+        .addCase(verifyOtpThunk.rejected, (state, action) => {
+          state.isLoading = false;
+        })
   },
 })
 
-export const {logout , setIsLoading} = userSlice.actions;
+export const {logout, setIsLoading} = userSlice.actions;
 export default userSlice.reducer;
