@@ -13,17 +13,17 @@ import {verifyToken} from "../utils/middlewares/IsUserLoggedIn.js";
 const router = express.Router();
 
 // Configure multer
-const upload = multer({
-  dest: "uploads/",
-  limits: {fileSize: 5 * 1024 * 1024}, // 5MB
-  fileFilter: (_, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed"));
-    }
-  },
-});
+// const upload = multer({
+//   dest: "uploads/",
+//   limits: {fileSize: 5 * 1024 * 1024}, // 5MB
+//   fileFilter: (_, file, cb) => {
+//     if (file.mimetype.startsWith("image/")) {
+//       cb(null, true);
+//     } else {
+//       cb(new Error("Only image files are allowed"));
+//     }
+//   },
+// });
 
 // Routes
 router.post(
@@ -42,7 +42,7 @@ router.post(
 router.post(
     "/register/complete-profile",
     verifyToken,
-    upload.single("avatar"),
+    // upload.single("avatar"),
     validateProfileCompletion,
     authController.completeProfile
 );

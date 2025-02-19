@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
 import {useDispatch, useSelector} from "react-redux";
@@ -7,21 +7,36 @@ import validationLoginSchema from "@/app/auth/login/validationLoginSchema";
 import useAuth from "@/hooks/useAuth";
 import {Lock, Mail} from 'lucide-react-native';
 import {Link, useRouter} from "expo-router";
+import {RootState} from "@/types/redux.types";
 import {showNotification} from "@redux/slice/notificationSlice";
 
 export default function LoginScreen() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const isLoading = useSelector((state: any) => state.user.isLoading);
+  const isLoading: boolean = useSelector((state: RootState) => state.user.isLoading);
   const {loginUser} = useAuth();
   const dispatch = useDispatch();
-  const Router = useRouter()
+  const router = useRouter()
+  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
+  const isFirstRender = useRef(true);
 
-  const handleLogin = (values: any, errors: any) => {
-    if (errors.email || errors.password || !values.email || !values.password) {
-      console.log(errors)
-      dispatch(showNotification({message: "Please fill the form correctly", type: "WARNING", title: "Can't Login"}));
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
+    if (redirectUrl === '/auth/signup/VerifyOTP') {
+      dispatch(showNotification(
+          {
+            type: 'WARNING',
+            title: 'OTP Verification Required',
+            message: 'Please verify your OTP to continue'
+          }
+      ))
+    }
+    router.push(redirectUrl)
+  }, [redirectUrl])
+
+  const handleLogin = (values: any) => {
     loginUser(values);
   }
 
@@ -40,8 +55,10 @@ export default function LoginScreen() {
           <Formik
               initialValues={{email: '', password: ''}}
               validationSchema={validationLoginSchema}
-              onSubmit={values => {
-                Router.navigate('/')
+
+              onSubmit={(values) => {
+
+                handleLogin(values);
               }}
           >
             {({handleChange, handleBlur, handleSubmit, values, errors, touched}) => (
@@ -117,7 +134,7 @@ export default function LoginScreen() {
                   {/* Login Button */}
                   <Button
                       mode="contained"
-                      onPress={() => handleLogin(values, errors)}
+                      onPress={() => handleSubmit()}
                       loading={isLoading}
                       contentStyle={{paddingVertical: 8}}
                       style={{

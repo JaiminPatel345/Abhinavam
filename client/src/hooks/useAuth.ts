@@ -1,5 +1,5 @@
-import {ILoginCredentials, IRegisterUserRequest} from "@/types/user.types";
-import {loginThunk, signupThunk} from "@redux/thunks/authThunk";
+import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
+import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
 import {useDispatch, useSelector} from 'react-redux';
 import {ThunkDispatch} from "redux-thunk";
 import {clearNotification, showNotification} from "@redux/slice/notificationSlice";
@@ -15,7 +15,7 @@ const useAuth = () => {
   const loginUser = (credentials: ILoginCredentials) => {
     dispatch(clearNotification())
 
-    if (userData && userData.token && userData.token.length > 0) {
+    if (userData && userData.accessToken && userData.accessToken.length > 0) {
       dispatch(
           showNotification({
             message: 'if you want to login with another account, please logout first',
@@ -33,16 +33,15 @@ const useAuth = () => {
 
   const registerUser = (credentials: IRegisterUserRequest) => {
     dispatch(clearNotification())
-    if (userData && userData.token && userData.token.length > 0) {
+
+    if (userData && userData.accessToken && userData.accessToken.length > 0) {
       dispatch(
           showNotification({
             message: 'if you want to register with another account, please logout first',
             type: 'INFO',
             title: 'Already logged in'
-
           })
       )
-      //TODO: optimise this to register reduser
       dispatch(setIsLoading(false))
       Router.replace('/')
       return;
@@ -50,7 +49,26 @@ const useAuth = () => {
     return dispatch(signupThunk(credentials));
   }
 
-  return {loginUser, registerUser};
+  const verifyOtp = (credentials:IVerifyOtp) => {
+    dispatch(clearNotification())
+
+    if (userData?.accessToken?.length > 0) {
+      dispatch(
+          showNotification({
+            message: 'if you want to register with another account, please logout first',
+            type: 'INFO',
+            title: 'Already logged in'
+          })
+      )
+      dispatch(setIsLoading(false))
+      Router.replace('/')
+      return;
+    }
+
+    return dispatch(verifyOtpThunk(credentials));
+  }
+
+  return {loginUser, registerUser, verifyOtp};
 
 }
 

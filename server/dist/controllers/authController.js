@@ -39,9 +39,7 @@ const initiateRegistration = (req, res) => __awaiter(void 0, void 0, void 0, fun
         });
         //Generate and send otp also set in redis
         yield handleOtp(email);
-        res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {
-            userId: temporaryUser._id
-        }));
+        res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', { user: temporaryUser }));
     }
     catch (error) {
         console.error('Error in registration initiation:', error);
@@ -166,6 +164,15 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             throw new AppError(`No user found with this ${isEmail ? 'email' : 'username'}`, 401);
         }
         const validatedUser = yield validatePassword(password, user, isEmail);
+        if (user.registrationStage === 1) {
+            //TODO: i am assume it is Email
+            yield handleOtp(identifier);
+            res.status(401).json(formatResponse(false, "Account is not verified ", {
+                isNeedVerifyOtpVerification: true,
+                user
+            }));
+            return;
+        }
         const tokens = yield getTokens(validatedUser._id.toString());
         res.json(formatResponse(true, 'Login successful', {
             user,

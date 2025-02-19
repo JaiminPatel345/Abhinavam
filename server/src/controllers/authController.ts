@@ -40,9 +40,7 @@ const initiateRegistration = async (req: Request, res: Response) => {
     await handleOtp(email)
 
 
-    res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {
-      userId: temporaryUser._id
-    }));
+    res.status(201).json(formatResponse(true, 'Registration initiated. Please verify OTP.', {user: temporaryUser}));
 
   } catch (error: any) {
     console.error('Error in registration initiation:', error);
@@ -211,6 +209,16 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
     }
 
     const validatedUser = await validatePassword(password, user, isEmail);
+
+    if(user.registrationStage === 1){
+      //TODO: i am assume it is Email
+      await handleOtp(identifier)
+      res.status(401).json(formatResponse(false , "Account is not verified " , {
+        isNeedVerifyOtpVerification: true,
+        user
+      }))
+      return
+    }
     const tokens = await getTokens(validatedUser._id.toString());
 
     res.json(formatResponse(true, 'Login successful', {

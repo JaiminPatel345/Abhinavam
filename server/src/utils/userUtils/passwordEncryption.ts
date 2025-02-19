@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import {IUser} from "../../types/user.types.js";
+import {AppError} from "../../types/custom.types.js";
 
 const SALT_ROUNDS = 10;
 
@@ -11,9 +12,7 @@ export const validatePassword = async (password:string, user:IUser , isEmail:boo
   const isMatch = await bcrypt.compare(password, user.password as string);
 
     if (!isMatch) {
-      throw {
-        status: 401, message: `Invalid ${isEmail ? 'Email' : 'Username'} or Password`
-      };
+      throw new AppError(`Invalid ${isEmail ? 'Email' : 'Username'} or Password` , 401);
     }
     return user;
 }

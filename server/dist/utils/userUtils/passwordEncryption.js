@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import bcrypt from "bcrypt";
+import { AppError } from "../../types/custom.types.js";
 const SALT_ROUNDS = 10;
 export const encryptPassword = (password) => __awaiter(void 0, void 0, void 0, function* () {
     return bcrypt.hash(password, SALT_ROUNDS);
@@ -15,9 +16,7 @@ export const encryptPassword = (password) => __awaiter(void 0, void 0, void 0, f
 export const validatePassword = (password, user, isEmail) => __awaiter(void 0, void 0, void 0, function* () {
     const isMatch = yield bcrypt.compare(password, user.password);
     if (!isMatch) {
-        throw {
-            status: 401, message: `Invalid ${isEmail ? 'Email' : 'Username'} or Password`
-        };
+        throw new AppError(`Invalid ${isEmail ? 'Email' : 'Username'} or Password`, 401);
     }
     return user;
 });

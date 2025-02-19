@@ -80,10 +80,15 @@ const UserSchema = new mongoose.Schema({
         },
         path: String,
     },
+    tagLine: {
+        type: String,
+        trim: true,
+        maxlength: [500, 'Tag Line cannot exceed 500 characters'],
+        default: '',
+    },
     about: {
         type: String,
         trim: true,
-        maxlength: [500, 'About section cannot exceed 500 characters'],
     },
     interests: {
         type: [String],
@@ -199,6 +204,7 @@ UserSchema.methods.isAccountLocked = function () {
 // Method to check if profile is complete
 UserSchema.methods.checkProfileComplete = function () {
     return Boolean(this.isMobileVerified &&
+        this.tagLine.length > 0 &&
         this.about &&
         this.interests.length > 0 &&
         this.profession &&

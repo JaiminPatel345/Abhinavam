@@ -18,6 +18,7 @@ export interface IUser extends Document {
     url: string;
     path: string;
   };
+  tagLine?: string;
   about?: string;
   interests?: string[];
   profession?: string[];

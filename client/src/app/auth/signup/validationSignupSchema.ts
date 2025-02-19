@@ -14,10 +14,10 @@ import * as yup from "yup";
     .string()
     .email('Please enter a valid email')
     .required('Email is required'),
-  mobile: yup
-    .string()
-    .matches(/^\d{10}$/, 'Please enter a valid 10-digit mobile number')
-    .required('Mobile number is required'),
+  // mobile: yup
+  //   .string()
+  //   .matches(/^\d{10}$/, 'Please enter a valid 10-digit mobile number')
+  //   .required('Mobile number is required'),
   password: yup
     .string()
     .required('Password is required')
