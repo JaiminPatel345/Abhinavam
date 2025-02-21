@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {Button, TextInput} from 'react-native-paper';
+import {TextInput} from 'react-native-paper';
 import {Camera, Plus} from 'lucide-react-native';
 import INTERESTS from '@/utils/userUtils/interested';
 import PROFESSIONS from '@/utils/userUtils/professions';

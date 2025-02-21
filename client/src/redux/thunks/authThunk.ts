@@ -24,6 +24,7 @@ export const loginThunk = createAsyncThunk(
 
       } catch (error: any) {
         console.log("Error at login :", error.response || error);
+        console.log(error.response)
         dispatch(
             showNotification({
               type: 'DANGER',
@@ -73,8 +74,6 @@ export const verifyOtpThunk = createAsyncThunk(
               message: 'Fills other details to complete registration'
             })
         )
-        console.log("response : ", response)
-        console.log("response.data : ", response.data)
         return response.data.data;
       } catch (error: any) {
         console.log(error);

@@ -71,7 +71,7 @@ export interface IVerifyOtp {
 
 export interface AuthState {
   user: IUser | null;
-  accessToken: string | null;
+  isLoggedIn: boolean;
   isLoading: boolean;
   redirectUrl: string | null;
   // error: string | null;

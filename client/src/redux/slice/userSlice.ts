@@ -1,11 +1,12 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {AuthState} from "@/types/user.types";
 import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
+import {state} from "sucrase/dist/types/parser/traverser/base";
 
 
 const initialState: AuthState = {
   user: null,
-  accessToken: null,
+  isLoggedIn: false,
   isLoading: false,
   redirectUrl: null
 }
@@ -18,11 +19,14 @@ export const userSlice = createSlice({
   reducers: {
     logout: (state) => {
       state.user = null;
-      state.accessToken = null;
+      state.isLoggedIn = false;
       state.redirectUrl = '/'
     },
     setIsLoading: (state, action) => {
       state.isLoading = action.payload;
+    },
+    setIsLoggedIn:(state , action) => {
+      state.isLoggedIn = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -33,16 +37,16 @@ export const userSlice = createSlice({
         })
         .addCase(loginThunk.fulfilled, (state, action) => {
           state.user = action.payload.user;
-          state.accessToken = action.payload.tokens.accessToken;
+          state.isLoggedIn = !!action.payload.tokens.accessToken;
           state.isLoading = false;
           state.redirectUrl = '/'
         })
         .addCase(loginThunk.rejected, (state, action: any) => {
           state.isLoading = false;
           if (action.payload.data?.isNeedVerifyOtpVerification) {
-            console.log("redirect to verify otp")
             state.redirectUrl = '/auth/signup/VerifyOTP'
             state.user = action.payload.data.user;
+            state.isLoading = false;
           }
 
         })
@@ -52,7 +56,6 @@ export const userSlice = createSlice({
           state.isLoading = true;
         })
         .addCase(signupThunk.fulfilled, (state, action) => {
-          console.log("action.payload : ", action.payload)
           state.user = action.payload.user;
           state.isLoading = false;
           state.redirectUrl = '/auth/signup/VerifyOTP'
@@ -69,16 +72,17 @@ export const userSlice = createSlice({
         )
         .addCase(verifyOtpThunk.fulfilled, (state, action) => {
           state.user = action.payload.user;
-          state.accessToken = action.payload.tokens.accessToken;
+          state.isLoggedIn = !!action.payload.tokens.accessToken;
           state.isLoading = false;
           state.redirectUrl = '/auth/signup/AdditionalDetails'
 
         })
         .addCase(verifyOtpThunk.rejected, (state, action) => {
           state.isLoading = false;
+          state.isLoggedIn = false;
         })
   },
 })
 
-export const {logout, setIsLoading} = userSlice.actions;
+export const {logout, setIsLoading , setIsLoggedIn} = userSlice.actions;
 export default userSlice.reducer;
