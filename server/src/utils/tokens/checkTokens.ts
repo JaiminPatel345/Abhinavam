@@ -3,8 +3,9 @@ import jwt from "jsonwebtoken";
 import {formatResponse, AppError} from "../../types/custom.types.js";
 
 
-const checkTokens = (req: Request, res: Response, SECRET: string): Promise<string> => {
-  const bearerHeader = req.headers.authorization;
+const checkTokens = (req: Request, res: Response, SECRET: string): Promise<string> | void => {
+  try{
+    const bearerHeader = req.headers.authorization;
 
   // Check if the authorization header is present
   if (!bearerHeader) {
@@ -28,6 +29,10 @@ const checkTokens = (req: Request, res: Response, SECRET: string): Promise<strin
       }
     });
   });
+  }catch (error:any) {
+    console.log("Error in checkTokens", error);
+    res.status(401).send(formatResponse(false , error.message || 'Unauthorized'  , {error}));
+  }
 };
 
 export default checkTokens;
