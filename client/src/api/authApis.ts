@@ -1,5 +1,6 @@
 import axios from "axios";
 import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
+import axiosInstance from "@/api/axiosClient";
 
 const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -20,6 +21,6 @@ export const authAPI = {
   },
 
   registerOtherInfo: async (credentials: IRegisterUserRequest) => {
-    return axios.post(`${BASE_URL}/auth/register/complete-profile`, credentials);
+    return axiosInstance.post(`${BASE_URL}/auth/register/complete-profile`, credentials);
   },
 };
