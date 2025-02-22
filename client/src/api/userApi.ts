@@ -1,11 +1,12 @@
 import axios from 'axios';
 import axiosInstance from "@/api/axiosClient";
+import {ICompleteProfilePayload} from "@/types/user.types";
 
 //TODO: Add types
 
 export const userApi = {
-  updateProfile: async (credentials: any) => {
-    return axiosInstance.post(`/users/update-profile`, credentials);
+  updateUserProfile: async (credentials: ICompleteProfilePayload) => {
+    return axiosInstance.patch(`/users/`, credentials);
   },
 
   getProfileSignature: async () => {

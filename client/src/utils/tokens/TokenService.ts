@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 class TokenService {
   static async storeTokens(accessToken: string, refreshToken: string): Promise<void> {
     try {
+
       await SecureStore.setItemAsync('accessToken', accessToken);
       await SecureStore.setItemAsync('refreshToken', refreshToken);
     } catch (error) {
@@ -30,16 +31,16 @@ class TokenService {
     }
   }
 
-  static async removeTokens(): Promise<void> {
-    try {
-      await SecureStore.deleteItemAsync('accessToken');
-      await SecureStore.deleteItemAsync('refreshToken');
-    } catch (error) {
-      console.error('Error removing tokens:', error);
-      // Re-throw to allow caller to handle
-      throw error;
-    }
-  }
+  // static async removeTokens(): Promise<void> {
+  //   try {
+  //     await SecureStore.deleteItemAsync('accessToken');
+  //     await SecureStore.deleteItemAsync('refreshToken');
+  //   } catch (error) {
+  //     console.error('Error removing tokens:', error);
+  //     // Re-throw to allow caller to handle
+  //     throw error;
+  //   }
+  // }
 }
 
 export default TokenService;

@@ -18,10 +18,10 @@ export interface IUser extends Document {
     url: string;
     public_id: string;
   };
-  tagLine?: string;
+  tagline?: string;
   about?: string;
   interests?: string[];
-  profession?: string[];
+  professions?: string[];
   followers: mongoose.Types.ObjectId[];
   following: mongoose.Types.ObjectId[];
   posts?: mongoose.Types.ObjectId[];
@@ -52,8 +52,8 @@ export interface IRegisterUserRequest {
   email: string;
   password: string;
   mobile?: string;
-  interest?: string[];
-  profession?: string[];
+  interests?: string[];
+  professions?: string[];
   about: string;
   avatar?: string;
 }
@@ -114,12 +114,13 @@ export type UserDocument = Document<unknown, {}, IUser> & IUser & {
 } | null;
 
 
-export interface IUpdateUserProfileBody {
-  about?: string;
-  interests?: string[];
-  profession?: string[];
-  avatar?: {
-    public_id: string;
-    url: string;
-  };
-}
+export interface ICompleteProfilePayload{
+      avatar?: {
+        url: string,
+        public_id: string,
+      },
+      tagline?: string,
+      about?: string,
+      interests?: string[],
+      professions?: string[]
+    }

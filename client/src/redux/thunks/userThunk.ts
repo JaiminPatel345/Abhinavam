@@ -3,6 +3,7 @@ import {showNotification} from "@redux/slice/notificationSlice";
 import getSignature from "@/utils/userUtils/getSignature";
 import {userApi} from "@/api/userApi";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
+import {ICompleteProfilePayload} from "@/types/user.types";
 
 interface CloudinaryUploadResponse {
   secure_url: string;
@@ -71,6 +72,35 @@ export const uploadUserProfileThunk = createAsyncThunk(
         dispatch(showNotification({
           type: 'DANGER',
           title: 'Upload Failed',
+          message: error.message || 'Please try again later',
+        }));
+
+        return rejectWithValue(error.message);
+      }
+    }
+);
+
+export const updateUserProfileThunk = createAsyncThunk(
+    'users/update-profile',
+    async (data: ICompleteProfilePayload, {dispatch, rejectWithValue}) => {
+      try {
+        const response = await userApi.updateUserProfile(data);
+        console.log("Response data", response.data);
+
+        dispatch(showNotification({
+          type: 'SUCCESS',
+          title: 'Profile Updated',
+          message: 'Your profile has been updated successfully',
+        }));
+
+        return response.data.data;
+
+      } catch (error: any) {
+        console.error('Update error:', error.response || error);
+
+        dispatch(showNotification({
+          type: 'DANGER',
+          title: 'Update Failed',
           message: error.message || 'Please try again later',
         }));
 

@@ -25,6 +25,16 @@ export interface UserState {
   token: string | null;
 }
 
+export interface ICompleteProfilePayload{
+      avatar?: {
+        url: string,
+        public_id: string,
+      },
+      tagline?: string,
+      about?: string,
+      interests?: string[],
+      professions?: string[]
+    }
 
 export interface ILoginCredentials {
   email: string;

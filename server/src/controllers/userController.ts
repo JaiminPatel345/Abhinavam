@@ -1,5 +1,10 @@
 import {Request, Response} from "express";
-import {IToggleFollowingBody, IUpdateUserProfileBody, IUser, TypedRequest} from "../types/user.types.js";
+import {
+  ICompleteProfilePayload,
+  IToggleFollowingBody,
+  IUser,
+  TypedRequest
+} from "../types/user.types.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
@@ -8,11 +13,11 @@ import {signUploadUserWidget} from "../utils/userUtils/cloudinarySignature.js";
 
 
 const updateUserProfile = async (
-    req: TypedRequest<IUpdateUserProfileBody>,
+    req: TypedRequest<ICompleteProfilePayload>,
     res: Response
 ) => {
   try {
-    const {about, interests, profession, avatar} = req.body;
+    const {about, interests,  professions, avatar ,tagline} = req.body;
     const userId = req.userId;
 
     // Find the user
@@ -45,8 +50,8 @@ const updateUserProfile = async (
     }
 
     // Validate and update profession
-    if (profession !== undefined) {
-      const invalidProfessions = profession.filter(
+    if (professions !== undefined) {
+      const invalidProfessions = professions.filter(
           prof => !PROFESSIONS.includes(prof)
       );
       if (invalidProfessions.length > 0) {
@@ -55,13 +60,17 @@ const updateUserProfile = async (
             400
         );
       }
-      user.profession = profession;
+      user.professions = professions;
     }
 
     // Update avatar
     if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
       // You might want to add URL validation here
       user.avatar = avatar;
+    }
+
+    if(tagline !== undefined){
+      user.tagline = tagline;
     }
 
     // Save the updated user
@@ -71,13 +80,7 @@ const updateUserProfile = async (
     // Return the updated user without sensitive information
     res.status(200).json(
         formatResponse(true, "Profile updated successfully", {
-          user: {
-            about: user.about,
-            interests: user.interests,
-            profession: user.profession,
-            avatar: user.avatar,
-            isProfileComplete: user.isProfileComplete
-          }
+          user
         })
     );
 

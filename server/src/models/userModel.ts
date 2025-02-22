@@ -76,7 +76,7 @@ const UserSchema = new mongoose.Schema<IUser>(
         },
         public_id: String,
       },
-      tagLine: {
+      tagline: {
         type: String,
         trim: true,
         maxlength: [500, 'Tag Line cannot exceed 500 characters'],
@@ -101,7 +101,7 @@ const UserSchema = new mongoose.Schema<IUser>(
         },
         default: [],
       },
-      profession: {
+      professions: {
         type: [String],
         validate: {
           validator: function (professions: string[]) {

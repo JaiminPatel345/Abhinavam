@@ -145,7 +145,7 @@ const completeProfile = async (req: Request, res: Response) => {
         avatar: user.avatar,
         about: user.about,
         interests: user.interests,
-        profession: user.profession,
+        professions: user.professions,
         isMobileVerified: user.isMobileVerified
       },
       tokens

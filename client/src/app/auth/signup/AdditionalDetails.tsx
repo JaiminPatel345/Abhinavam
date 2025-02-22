@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {TextInput} from 'react-native-paper';
 import {Camera, Plus} from 'lucide-react-native';
@@ -12,6 +12,9 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/types/redux.types";
 import {setIsImageUploading} from "@redux/slice/userSlice";
 import useUser from "@/hooks/useUser";
+import {ICompleteProfilePayload} from "@/types/user.types";
+import {showNotification} from "@redux/slice/notificationSlice";
+import {Link, useRouter} from "expo-router";
 
 export default function AdditionalDetailsScreen() {
   const [photo, setPhoto] = useState<string | null>(null);
@@ -27,11 +30,27 @@ export default function AdditionalDetailsScreen() {
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
-  const {uploadUserProfile} = useUser();
+  const {uploadUserProfile , updateUserProfile} = useUser();
+  const router = useRouter()
+
+
+  const isLoading = useSelector((state: any) => state.user.isLoading);
+  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
+  const isFirstRender = useRef(true);
+
+  //redirect after successfully submission
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    router.push(redirectUrl)
+  }, [redirectUrl])
 
   useEffect(() => {
     setPhoto(user?.avatar?.url || 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png')
   }, [user]);
+
 
   const handlePhotoUpload = async () => {
     try {
@@ -47,7 +66,6 @@ export default function AdditionalDetailsScreen() {
 
         // Update local state immediately for UI feedback
         setPhoto(result.assets[0].uri);
-
 
 
         // Upload the image - pass the entire result
@@ -76,15 +94,37 @@ export default function AdditionalDetailsScreen() {
     );
   }, []);
 
-  const handleProfileComplete = () => {
-    console.log({
-      photo,
-      tagline,
-      about,
-      selectedInterests,
-      selectedProfessions
-    });
-  };
+  const handleSubmit = () => {
+
+    let payload: ICompleteProfilePayload = {}
+    if (user?.avatar) {
+      payload.avatar = user?.avatar
+    }
+    if (tagline?.length > 0) {
+      payload.tagline = tagline
+    }
+    if (about?.length > 0) {
+      payload.about = about
+    }
+    if (selectedInterests.length > 0) {
+      payload.interests = selectedInterests
+    }
+    if (selectedProfessions.length > 0) {
+      payload.professions = selectedProfessions
+    }
+    if (Object.keys(payload).length === 0) {
+      dispatch(showNotification({
+        message: 'Please fill out at least one field',
+        type: 'WARNING',
+        title: 'Incomplete Profile'
+      }))
+    }
+
+    //submit
+    updateUserProfile(payload)
+
+  }
+
 
   return (
       <SafeAreaView className="flex-1 bg-background">
@@ -219,7 +259,12 @@ export default function AdditionalDetailsScreen() {
 
               {/* Complete Button */}
 
-              <MyButton title={'Complete Profile'} onPressAction={handleProfileComplete}/>
+              <MyButton title={'Complete Profile'} isLoading={isLoading}  onPressAction={() => handleSubmit()}/>
+              <View>
+                <Link href={"/"} className="font-pmedium text-primary text-center">
+                  Skip for now
+                </Link>
+              </View>
             </View>
           </View>
         </ScrollView>
