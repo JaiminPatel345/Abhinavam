@@ -20,7 +20,4 @@ export const authAPI = {
     return axios.post(`${BASE_URL}/auth/register/verify-otp`, credentials);
   },
 
-  registerOtherInfo: async (credentials: IRegisterUserRequest) => {
-    return axiosInstance.post(`${BASE_URL}/auth/register/complete-profile`, credentials);
-  },
 };

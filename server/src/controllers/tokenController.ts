@@ -8,7 +8,11 @@ import {AppError, formatResponse} from "../types/custom.types.js";
 
 const giveNewTokens = async (req:Request , res:Response ) => {
   try {
-    const userId:string = await checkTokens(req , res , process.env.JWT_REFRESH_SECRET as string)
+
+    const userId:string | void = await checkTokens(req , res , process.env.JWT_REFRESH_SECRET as string)
+    if(!userId){
+      throw new AppError("Unauthorized need to login", 401)
+    }
     const user = await User.findById(userId)
     if(!user){
       throw new AppError("Invalid Token", 401)

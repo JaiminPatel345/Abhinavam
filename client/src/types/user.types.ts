@@ -1,13 +1,18 @@
 export interface IUser {
-  id: string;
+  _id: string;
   name: string;
-  email: string;
   username: string;
+  email: string;
+  mobile?: string;
+  password: string;
+  avatar?: {
+    url: string;
+    public_id: string;
+  };
   tagLine?: string;
   about?: string;
-  interest: string[];
-  profession: string[];
-  isMobileVerified: boolean;
+  interests?: string[];
+  profession?: string[];
 }
 
 export interface IUserResponse {
@@ -74,5 +79,13 @@ export interface AuthState {
   isLoggedIn: boolean;
   isLoading: boolean;
   redirectUrl: string | null;
+  isImageUploading: boolean;
   // error: string | null;
+}
+
+export type ImageData = {
+  uri: string;
+  type: string;
+  name: string;
+
 }

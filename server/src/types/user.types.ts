@@ -16,7 +16,7 @@ export interface IUser extends Document {
   password: string;
   avatar: {
     url: string;
-    path: string;
+    public_id: string;
   };
   tagLine?: string;
   about?: string;
@@ -119,7 +119,7 @@ export interface IUpdateUserProfileBody {
   interests?: string[];
   profession?: string[];
   avatar?: {
+    public_id: string;
     url: string;
-    path: string;
   };
 }

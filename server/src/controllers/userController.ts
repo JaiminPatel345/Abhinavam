@@ -1,10 +1,10 @@
-import {Response} from "express";
+import {Request, Response} from "express";
 import {IToggleFollowingBody, IUpdateUserProfileBody, IUser, TypedRequest} from "../types/user.types.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
-import mongoose from "mongoose";
+import {signUploadUserWidget} from "../utils/userUtils/cloudinarySignature.js";
 
 
 const updateUserProfile = async (
@@ -59,7 +59,7 @@ const updateUserProfile = async (
     }
 
     // Update avatar
-    if (avatar !== undefined) {
+    if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
       // You might want to add URL validation here
       user.avatar = avatar;
     }
@@ -125,7 +125,7 @@ const toggleFollowing = async (
     res: Response
 ) => {
   try {
-    const { userToFollow } = req.body;
+    const {userToFollow} = req.body;
     const userId = req.userId;
 
     if (!userToFollow) {
@@ -139,7 +139,7 @@ const toggleFollowing = async (
     const [followUser, user] = await Promise.all([
       User.findById(userToFollow),
       User.findById(userId),
-    ])  as [IUser | null, IUser | null];
+    ]) as [IUser | null, IUser | null];
 
     if (!followUser || !user) {
       throw new AppError("User not found", 404);
@@ -147,47 +147,69 @@ const toggleFollowing = async (
 
     // Convert to string for comparison
     const isFollowing = user.following.some(id =>
-      id.toString() === followUser._id.toString()
+        id.toString() === followUser._id.toString()
     );
 
     if (isFollowing) {
       // Unfollow - use proper MongoDB operations
       await User.findByIdAndUpdate(userId, {
-        $pull: { following: followUser._id }
+        $pull: {following: followUser._id}
       });
       await User.findByIdAndUpdate(userToFollow, {
-        $pull: { followers: user._id }
+        $pull: {followers: user._id}
       });
     } else {
       // Follow - use proper MongoDB operations
       await User.findByIdAndUpdate(userId, {
-        $addToSet: { following: followUser._id }
+        $addToSet: {following: followUser._id}
       });
       await User.findByIdAndUpdate(userToFollow, {
-        $addToSet: { followers: user._id }
+        $addToSet: {followers: user._id}
       });
     }
 
     res.status(200).json(
-      formatResponse(
-        true,
-        isFollowing ? "Unfollowed successfully" : "Followed successfully"
-      )
+        formatResponse(
+            true,
+            isFollowing ? "Unfollowed successfully" : "Followed successfully"
+        )
     );
 
   } catch (error: any) {
     console.error('Error in toggle following:', error);
     res.status(error.statusCode || 500).json(
-      formatResponse(
-        false,
-        error.message || 'Error toggling follow status'
-      )
+        formatResponse(
+            false,
+            error.message || 'Error toggling follow status'
+        )
     );
   }
 };
 
+const getSignature = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    const mode = req.params.mode || 'profile';
+    if (!userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+    const data = signUploadUserWidget(userId.toString() , mode);
+    if (!data) {
+      throw new AppError("Error to generate signature", 500);
+    }
+    res.json(formatResponse(true, "Signature successfully generated", data))
+
+  } catch (error: any) {
+    console.error('Error in getSignature:', error);
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Error to generate signature"));
+
+  }
+}
+
 export default {
   updateUserProfile,
   getUserProfile,
-  toggleFollowing
+  toggleFollowing,
+  getSignature,
+
 };
