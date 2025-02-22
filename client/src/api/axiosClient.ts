@@ -25,31 +25,35 @@ axiosInstance.interceptors.response.use(
     async (error) => {
       console.log("ERRR", error.response || error)
       const originalRequest = error.config;
+      console.log("original request", originalRequest)
 
       // Check if response exists to avoid errors
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         try {
           const refreshToken = await TokenService.getRefreshToken();
+          console.log("refresh token", refreshToken)
           if (!refreshToken) {
             // Handle case when refresh token doesn't exist
-            await TokenService.removeTokens();
-            // You might want to redirect to login here
+            //TODO: remove comment
+            // await TokenService.removeTokens();
+            // TODO: redirect to login here
             return Promise.reject(error);
           }
 
-          const response = await axios.get(`${BASE_URL}/auth/tokens`,  {
+          const response = await axios.get(`${BASE_URL}/tokens`,  {
             headers: {
               Authorization: `Bearer ${refreshToken}`
             }
           });
-          await TokenService.storeTokens(response.data.accessToken, response.data.refreshToken);
-          originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
+          console.log("response : " , response.data || response)
+          await TokenService.storeTokens(response.data.data.tokens.accessToken, response.data.data.tokens.refreshToken);
+          originalRequest.headers['Authorization'] = `Bearer ${response.data.data.tokens.accessToken}`;
 
           return axios(originalRequest);
         } catch (refreshError) {
           // Handle refresh token failure
-          await TokenService.removeTokens();
+          // await TokenService.removeTokens();
           // You might want to redirect to login here
           return Promise.reject(refreshError);
         }

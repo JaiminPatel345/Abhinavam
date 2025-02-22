@@ -1,7 +1,7 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {AuthState} from "@/types/user.types";
 import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
-import {uploadUserProfileThunk} from "@redux/thunks/userThunk";
+import {updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
 
 
 const initialState: AuthState = {
@@ -104,8 +104,20 @@ export const userSlice = createSlice({
         .addCase(uploadUserProfileThunk.rejected, (state) => {
           state.isImageUploading = false;
         })
+
+        .addCase(updateUserProfileThunk.pending, (state) => {
+          state.isLoading = true;
+        })
+        .addCase(updateUserProfileThunk.fulfilled, (state, action) => {
+          state.user = action.payload.user;
+          state.isLoading = false;
+          state.redirectUrl = '/';
+        })
+        .addCase(updateUserProfileThunk.rejected, (state) => {
+          state.isLoading = false;
+        })
   },
 })
 
-export const {logout, setIsLoading, setIsLoggedIn , setIsImageUploading} = userSlice.actions;
+export const {logout, setIsLoading, setIsLoggedIn, setIsImageUploading} = userSlice.actions;
 export default userSlice.reducer;

@@ -117,7 +117,7 @@ const completeProfile = (req, res) => __awaiter(void 0, void 0, void 0, function
                 avatar: user.avatar,
                 about: user.about,
                 interests: user.interests,
-                profession: user.profession,
+                professions: user.professions,
                 isMobileVerified: user.isMobileVerified
             },
             tokens

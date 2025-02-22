@@ -14,7 +14,7 @@ import PROFESSIONS from '../utils/userUtils/professions.js';
 import { signUploadUserWidget } from "../utils/userUtils/cloudinarySignature.js";
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { about, interests, profession, avatar } = req.body;
+        const { about, interests, professions, avatar, tagline } = req.body;
         const userId = req.userId;
         // Find the user
         const user = yield User.findById(userId);
@@ -37,30 +37,27 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             user.interests = interests;
         }
         // Validate and update profession
-        if (profession !== undefined) {
-            const invalidProfessions = profession.filter(prof => !PROFESSIONS.includes(prof));
+        if (professions !== undefined) {
+            const invalidProfessions = professions.filter(prof => !PROFESSIONS.includes(prof));
             if (invalidProfessions.length > 0) {
                 throw new AppError(`Invalid professions: ${invalidProfessions.join(", ")}`, 400);
             }
-            user.profession = profession;
+            user.professions = professions;
         }
         // Update avatar
         if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
             // You might want to add URL validation here
             user.avatar = avatar;
         }
+        if (tagline !== undefined) {
+            user.tagline = tagline;
+        }
         // Save the updated user
         // The pre-save middleware will automatically update isProfileComplete
         yield user.save();
         // Return the updated user without sensitive information
         res.status(200).json(formatResponse(true, "Profile updated successfully", {
-            user: {
-                about: user.about,
-                interests: user.interests,
-                profession: user.profession,
-                avatar: user.avatar,
-                isProfileComplete: user.isProfileComplete
-            }
+            user
         }));
     }
     catch (error) {
