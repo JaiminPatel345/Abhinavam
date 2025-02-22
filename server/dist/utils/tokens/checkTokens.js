@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { formatResponse, AppError } from "../../types/custom.types.js";
+import { AppError } from "../../types/custom.types.js";
 const checkTokens = (req, res, SECRET) => {
     try {
         const bearerHeader = req.headers.authorization;
@@ -16,7 +16,7 @@ const checkTokens = (req, res, SECRET) => {
         return new Promise((resolve, reject) => {
             jwt.verify(token, SECRET, (err, decoded) => {
                 if (err) {
-                    reject(new AppError("Invalid or expired token", 403));
+                    reject(new AppError("Invalid or expired token", 401));
                 }
                 else {
                     resolve(decoded.userId || decoded.uuid);
@@ -26,7 +26,7 @@ const checkTokens = (req, res, SECRET) => {
     }
     catch (error) {
         console.log("Error in checkTokens", error);
-        res.status(401).send(formatResponse(false, error.message || 'Unauthorized', { error }));
+        throw new AppError(error.message || "Invalid or expired token", 401);
     }
 };
 export default checkTokens;

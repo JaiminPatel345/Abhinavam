@@ -1,14 +1,15 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {AuthState} from "@/types/user.types";
 import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
-import {state} from "sucrase/dist/types/parser/traverser/base";
+import {uploadUserProfileThunk} from "@redux/thunks/userThunk";
 
 
 const initialState: AuthState = {
   user: null,
   isLoggedIn: false,
   isLoading: false,
-  redirectUrl: null
+  redirectUrl: null,
+  isImageUploading: false,
 }
 
 //TODO: work with token
@@ -20,14 +21,18 @@ export const userSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.isLoggedIn = false;
-      state.redirectUrl = '/'
+      state.redirectUrl = '/';
     },
     setIsLoading: (state, action) => {
       state.isLoading = action.payload;
     },
-    setIsLoggedIn:(state , action) => {
+    setIsLoggedIn: (state, action) => {
       state.isLoggedIn = action.payload;
-    }
+    },
+    setIsImageUploading: (state, action) => {
+      state.isImageUploading = action.payload;
+    },
+
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
@@ -81,8 +86,26 @@ export const userSlice = createSlice({
           state.isLoading = false;
           state.isLoggedIn = false;
         })
+
+        //get cloudinary signature
+        .addCase(uploadUserProfileThunk.pending, (state) => {
+          state.isImageUploading = true;
+        })
+        .addCase(uploadUserProfileThunk.fulfilled, (state, action) => {
+          state.isImageUploading = false;
+          if (!state.user) return;
+          console.log(action.payload.secure_url)
+          state.user.avatar = {
+            url: action.payload.secure_url,
+            public_id: action.payload.public_id
+          };
+          console.log(action.payload.secure_url)
+        })
+        .addCase(uploadUserProfileThunk.rejected, (state) => {
+          state.isImageUploading = false;
+        })
   },
 })
 
-export const {logout, setIsLoading , setIsLoggedIn} = userSlice.actions;
+export const {logout, setIsLoading, setIsLoggedIn , setIsImageUploading} = userSlice.actions;
 export default userSlice.reducer;

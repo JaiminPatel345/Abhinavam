@@ -3,6 +3,7 @@ import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.
 import {authAPI} from "@/api/authApis";
 import {showNotification} from "@redux/slice/notificationSlice";
 import {IApiResponse} from "@/types/response.types";
+import TokenService from "@/utils/tokens/TokenService";
 
 export const loginThunk = createAsyncThunk(
     "auth/login",
@@ -20,6 +21,7 @@ export const loginThunk = createAsyncThunk(
               title: 'Login Successful',
             })
         )
+        await TokenService.storeTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
         return data.data;
 
       } catch (error: any) {
@@ -74,10 +76,12 @@ export const verifyOtpThunk = createAsyncThunk(
               message: 'Fills other details to complete registration'
             })
         )
+        await TokenService.storeTokens(response.data.data.tokens.accessToken, response.data.data.tokens.refreshToken);
+
         return response.data.data;
       } catch (error: any) {
         console.log(error);
-        console.log("error message : ", error.message)
+        console.log("error at verify otp message : ", error.message)
         dispatch(
             showNotification({
               type: 'DANGER',

@@ -2,7 +2,7 @@
 import express, {Request, Response} from 'express';
 import 'dotenv/config';
 import {connectRedis} from './redis/redis.js';
-import connectDB from "./database.js";
+import connectDB from "./configs/database.js";
 
 // Import routes
 import authRouter from './routes/authRoute.js';

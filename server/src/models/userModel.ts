@@ -74,7 +74,7 @@ const UserSchema = new mongoose.Schema<IUser>(
           type: String,
           default: 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png',
         },
-        path: String,
+        public_id: String,
       },
       tagLine: {
         type: String,

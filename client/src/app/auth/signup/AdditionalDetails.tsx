@@ -1,16 +1,21 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {TextInput} from 'react-native-paper';
 import {Camera, Plus} from 'lucide-react-native';
+import * as Progress from 'react-native-progress';
 import INTERESTS from '@/utils/userUtils/interested';
 import PROFESSIONS from '@/utils/userUtils/professions';
 import SelectPicker from '@/app/auth/signup/SelectPicker';
 import {MyButton} from "@components/ui/Button";
-
+import * as ImagePicker from 'expo-image-picker';
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/types/redux.types";
+import {setIsImageUploading} from "@redux/slice/userSlice";
+import useUser from "@/hooks/useUser";
 
 export default function AdditionalDetailsScreen() {
   const [photo, setPhoto] = useState<string | null>(null);
-  const [headline, setHeadline] = useState('');
+  const [tagline, setTagline] = useState('');
   const [about, setAbout] = useState('');
   const [showInterestsModal, setShowInterestsModal] = useState(false);
   const [showProfessionsModal, setShowProfessionsModal] = useState(false);
@@ -19,9 +24,40 @@ export default function AdditionalDetailsScreen() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
 
-  const handlePhotoUpload = () => {
-    // Implement photo upload logic here
-    console.log('Upload photo');
+  const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
+  const user = useSelector((state: RootState) => state.user.user);
+  const dispatch = useDispatch();
+  const {uploadUserProfile} = useUser();
+
+  useEffect(() => {
+    setPhoto(user?.avatar?.url || 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png')
+  }, [user]);
+
+  const handlePhotoUpload = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        dispatch(setIsImageUploading(true));
+
+        // Update local state immediately for UI feedback
+        setPhoto(result.assets[0].uri);
+
+
+
+        // Upload the image - pass the entire result
+        await uploadUserProfile(result);
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    } finally {
+      dispatch(setIsImageUploading(false));
+    }
   };
 
   const handleInterestSelect = useCallback((interest: string) => {
@@ -43,7 +79,7 @@ export default function AdditionalDetailsScreen() {
   const handleProfileComplete = () => {
     console.log({
       photo,
-      headline,
+      tagline,
       about,
       selectedInterests,
       selectedProfessions
@@ -51,7 +87,7 @@ export default function AdditionalDetailsScreen() {
   };
 
   return (
-      <SafeAreaView className="flex-1 bg-background ">
+      <SafeAreaView className="flex-1 bg-background">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="px-6 py-8">
             <View className="space-y-6 flex gap-5">
@@ -61,22 +97,41 @@ export default function AdditionalDetailsScreen() {
                     onPress={handlePhotoUpload}
                     className="w-32 h-32 rounded-full bg-gray-200 items-center justify-center overflow-hidden"
                 >
-                  {photo ? (
-                      <Image source={{uri: photo}} className="w-full h-full"/>
-                  ) : (
-                      <View className="items-center">
-                        <Camera size={40} color="#4C585B"/>
-                        <Text className="font-pmedium text-sm text-primary mt-2">Add Photo</Text>
-                      </View>
-                  )}
+                  <View className="w-full h-full relative">
+                    {photo && (
+                        <Image
+                            source={{uri: photo}}
+                            className="absolute w-full h-full"
+                            resizeMode="cover"
+                        />
+                    )}
+
+                    {!photo && (
+                        <View className="items-center justify-center h-full">
+                          <Camera size={40} color="#4C585B"/>
+                          <Text className="font-pmedium text-sm text-primary mt-2">Add Photo</Text>
+                        </View>
+                    )}
+
+                    {isImageUploading && (
+                        <View className="absolute w-full h-full items-center justify-center bg-black/30">
+                          <Progress.Circle
+                              size={50}
+                              indeterminate={true}
+                              color="#ffffff"
+                              borderWidth={2}
+                          />
+                        </View>
+                    )}
+                  </View>
                 </TouchableOpacity>
               </View>
 
               {/* Headline Input */}
               <TextInput
-                  label="Headline"
-                  value={headline}
-                  onChangeText={setHeadline}
+                  label="Tag Line"
+                  value={tagline}
+                  onChangeText={setTagline}
                   mode="outlined"
                   style={{backgroundColor: '#F4EDD3'}}
                   outlineColor="#A5BFCC"

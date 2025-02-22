@@ -14,6 +14,9 @@ import { AppError, formatResponse } from "../types/custom.types.js";
 const giveNewTokens = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = yield checkTokens(req, res, process.env.JWT_REFRESH_SECRET);
+        if (!userId) {
+            throw new AppError("Unauthorized need to login", 401);
+        }
         const user = yield User.findById(userId);
         if (!user) {
             throw new AppError("Invalid Token", 401);

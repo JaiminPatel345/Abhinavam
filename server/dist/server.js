@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import express from 'express';
 import 'dotenv/config';
 import { connectRedis } from './redis/redis.js';
-import connectDB from "./database.js";
+import connectDB from "./configs/database.js";
 // Import routes
 import authRouter from './routes/authRoute.js';
 import tokenRoute from "./routes/tokenRoute.js";

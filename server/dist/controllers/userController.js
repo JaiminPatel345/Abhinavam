@@ -11,6 +11,7 @@ import { AppError, formatResponse } from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
+import { signUploadUserWidget } from "../utils/userUtils/cloudinarySignature.js";
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { about, interests, profession, avatar } = req.body;
@@ -44,7 +45,7 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             user.profession = profession;
         }
         // Update avatar
-        if (avatar !== undefined) {
+        if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
             // You might want to add URL validation here
             user.avatar = avatar;
         }
@@ -128,9 +129,28 @@ const toggleFollowing = (req, res) => __awaiter(void 0, void 0, void 0, function
         res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error toggling follow status'));
     }
 });
+const getSignature = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        const mode = req.params.mode || 'profile';
+        if (!userId) {
+            throw new AppError("Unauthorized", 401);
+        }
+        const data = signUploadUserWidget(userId.toString(), mode);
+        if (!data) {
+            throw new AppError("Error to generate signature", 500);
+        }
+        res.json(formatResponse(true, "Signature successfully generated", data));
+    }
+    catch (error) {
+        console.error('Error in getSignature:', error);
+        res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Error to generate signature"));
+    }
+});
 export default {
     updateUserProfile,
     getUserProfile,
-    toggleFollowing
+    toggleFollowing,
+    getSignature,
 };
 //# sourceMappingURL=userController.js.map

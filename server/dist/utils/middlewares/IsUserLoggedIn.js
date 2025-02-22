@@ -7,19 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { client } from "../../redis/redis.js";
-import { formatResponse, AppError } from "../../types/custom.types.js";
+import { AppError, formatResponse } from "../../types/custom.types.js";
 import checkTokens from "../tokens/checkTokens.js";
 export const verifyToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const uuid = yield checkTokens(req, res, process.env.JWT_ACCESS_SECRET);
+        //TODO:use when using redis
+        // const uuid = await checkTokens(req, res, process.env.JWT_ACCESS_SECRET as string)
+        // //get from redis
+        // const userId = await client.get(uuid)
         //get from redis
-        const userId = yield client.get(uuid);
+        const userId = yield checkTokens(req, res, process.env.JWT_ACCESS_SECRET);
         if (!userId) {
             throw new AppError('Invalid token , Unauthorized user', 401);
         }
-        //TODO:Remove in production
-        console.log(userId);
         req.userId = userId;
         next();
     }
