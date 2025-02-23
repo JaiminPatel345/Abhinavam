@@ -31,16 +31,16 @@ class TokenService {
     }
   }
 
-  // static async removeTokens(): Promise<void> {
-  //   try {
-  //     await SecureStore.deleteItemAsync('accessToken');
-  //     await SecureStore.deleteItemAsync('refreshToken');
-  //   } catch (error) {
-  //     console.error('Error removing tokens:', error);
-  //     // Re-throw to allow caller to handle
-  //     throw error;
-  //   }
-  // }
+  static async removeTokens(): Promise<void> {
+    try {
+      await SecureStore.deleteItemAsync('accessToken');
+      await SecureStore.deleteItemAsync('refreshToken');
+    } catch (error) {
+      console.error('Error removing tokens:', error);
+      // Re-throw to allow caller to handle
+      throw error;
+    }
+  }
 }
 
 export default TokenService;

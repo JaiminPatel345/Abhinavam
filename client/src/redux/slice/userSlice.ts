@@ -1,7 +1,7 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {AuthState} from "@/types/user.types";
-import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
-import {updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
+import {loginThunk, logoutThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
+import {fetchMyData, updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
 
 
 const initialState: AuthState = {
@@ -10,9 +10,10 @@ const initialState: AuthState = {
   isLoading: false,
   redirectUrl: null,
   isImageUploading: false,
+  lastFetched: 0,
+
 }
 
-//TODO: work with token
 
 export const userSlice = createSlice({
   name: "user",
@@ -44,7 +45,9 @@ export const userSlice = createSlice({
           state.user = action.payload.user;
           state.isLoggedIn = !!action.payload.tokens.accessToken;
           state.isLoading = false;
-          state.redirectUrl = '/'
+          state.redirectUrl = '/';
+          state.lastFetched = Date.now();
+
         })
         .addCase(loginThunk.rejected, (state, action: any) => {
           state.isLoading = false;
@@ -73,6 +76,8 @@ export const userSlice = createSlice({
         //signup stage 2 : verify otp
         .addCase(verifyOtpThunk.pending, (state) => {
               state.isLoading = true;
+              state.lastFetched = Date.now();
+
             }
         )
         .addCase(verifyOtpThunk.fulfilled, (state, action) => {
@@ -105,6 +110,7 @@ export const userSlice = createSlice({
           state.isImageUploading = false;
         })
 
+        //update user profile / register stage 3
         .addCase(updateUserProfileThunk.pending, (state) => {
           state.isLoading = true;
         })
@@ -115,6 +121,26 @@ export const userSlice = createSlice({
         })
         .addCase(updateUserProfileThunk.rejected, (state) => {
           state.isLoading = false;
+        })
+
+        //fetch my data
+        .addCase(fetchMyData.fulfilled, (state, action) => {
+          state.user = action.payload;
+          state.isLoading = false;
+          state.lastFetched = Date.now();
+        })
+        .addCase(fetchMyData.rejected, (state) => {
+          state.user = null;
+          state.isLoggedIn = false;
+
+        })
+
+        //logout
+        .addCase(logoutThunk.fulfilled, (state) => {
+          state.user = null;
+          state.isLoggedIn = false;
+          state.redirectUrl = '/';
+          console.log('logout done')
         })
   },
 })

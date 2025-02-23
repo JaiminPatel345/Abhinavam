@@ -31,7 +31,7 @@ export const uploadUserProfileThunk = createAsyncThunk(
 
         // Get upload signature from backend
         const signatureData: SignatureResponse = await getSignature();
-        console.log("get signature ",signatureData)
+        console.log("get signature ", signatureData)
 
         // Create form data for upload
         const formData = new FormData();
@@ -49,11 +49,11 @@ export const uploadUserProfileThunk = createAsyncThunk(
         formData.append('signature', signatureData.signature);
         formData.append('timestamp', signatureData.timestamp.toString());
 
-        console.log("Full form : " ,formData)
+        console.log("Full form : ", formData)
 
         console.log("start to upload at cloudinary")
         const response = await userApi.uploadImageToCloudinary(formData);
-        console.log("Response :",response)
+        console.log("Response :", response)
 
         const result: CloudinaryUploadResponse = response.data;
         console.log("Result", result);
@@ -108,3 +108,13 @@ export const updateUserProfileThunk = createAsyncThunk(
       }
     }
 );
+
+export const fetchMyData = createAsyncThunk('users/', async (_, {rejectWithValue}) => {
+  try {
+    const response = await userApi.fetchMe();
+    return response.data.data;
+  } catch (error: any) {
+    console.log('Fetch user error:', error.response || error);
+    return rejectWithValue(error.message);
+  }
+})

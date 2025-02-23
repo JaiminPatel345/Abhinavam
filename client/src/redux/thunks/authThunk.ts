@@ -92,3 +92,24 @@ export const verifyOtpThunk = createAsyncThunk(
       }
     }
 );
+
+export const logoutThunk = createAsyncThunk(
+    "auth/logout",
+    async (_, {dispatch, rejectWithValue}) => {
+      try {
+        await TokenService.removeTokens();
+        const response = await authAPI.logout();
+        dispatch(
+            showNotification({
+              type: 'SUCCESS',
+              title: 'Logout Successful',
+            })
+        )
+        return response.data;
+      } catch (error: any) {
+        console.log(error);
+
+        return rejectWithValue("An error occurred during logout");
+      }
+    }
+);

@@ -12,6 +12,23 @@ import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
 import { signUploadUserWidget } from "../utils/userUtils/cloudinarySignature.js";
+const getMyProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.userId;
+        if (!userId) {
+            throw new AppError('Unauthorized', 401);
+        }
+        const user = yield User.findById(userId);
+        if (!user) {
+            throw new AppError('Unauthorized', 401);
+        }
+        res.json(formatResponse(true, '', user));
+    }
+    catch (error) {
+        console.error('Error in my profile:', error);
+        res.status(error.statusCode || 500).json(formatResponse(false, error.message || 'Error to get user profile'));
+    }
+});
 const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { about, interests, professions, avatar, tagline } = req.body;
@@ -45,7 +62,7 @@ const updateUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, functi
             user.professions = professions;
         }
         // Update avatar
-        if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
+        if (avatar !== undefined && avatar.url !== undefined && avatar.public_id !== undefined) {
             // You might want to add URL validation here
             user.avatar = avatar;
         }
@@ -149,5 +166,6 @@ export default {
     getUserProfile,
     toggleFollowing,
     getSignature,
+    getMyProfile,
 };
 //# sourceMappingURL=userController.js.map

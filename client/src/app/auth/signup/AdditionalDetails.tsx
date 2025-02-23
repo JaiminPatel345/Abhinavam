@@ -17,20 +17,20 @@ import {showNotification} from "@redux/slice/notificationSlice";
 import {Link, useRouter} from "expo-router";
 
 export default function AdditionalDetailsScreen() {
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [tagline, setTagline] = useState('');
-  const [about, setAbout] = useState('');
+  const user = useSelector((state: RootState) => state.user.user);
+  const [photo, setPhoto] = useState<string | null>(user?.avatar?.url || '');
+  const [tagline, setTagline] = useState(user?.tagline || '');
+  const [about, setAbout] = useState(user?.about || '');
   const [showInterestsModal, setShowInterestsModal] = useState(false);
   const [showProfessionsModal, setShowProfessionsModal] = useState(false);
   const [searchInterest, setSearchInterest] = useState('');
   const [searchProfession, setSearchProfession] = useState('');
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(user?.interests || []);
+  const [selectedProfessions, setSelectedProfessions] = useState<string[]>(user?.professions || []);
 
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
-  const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch();
-  const {uploadUserProfile , updateUserProfile} = useUser();
+  const {uploadUserProfile, updateUserProfile} = useUser();
   const router = useRouter()
 
 
@@ -259,7 +259,7 @@ export default function AdditionalDetailsScreen() {
 
               {/* Complete Button */}
 
-              <MyButton title={'Complete Profile'} isLoading={isLoading}  onPressAction={() => handleSubmit()}/>
+              <MyButton title={'Complete Profile'} isLoading={isLoading} onPressAction={() => handleSubmit()}/>
               <View>
                 <Link href={"/"} className="font-pmedium text-primary text-center">
                   Skip for now

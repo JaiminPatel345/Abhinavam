@@ -186,7 +186,8 @@ const validateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.clearCookie('token');
+        //TODO:
+        //advance logout
         return res.json(formatResponse(true, 'Logged out successfully'));
     }
     catch (error) {

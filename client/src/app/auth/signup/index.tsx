@@ -23,7 +23,7 @@ export default function SignupScreen(): any {
 
   const dispatch = useDispatch();
   const {registerUser} = useAuth()
-  const isLoading = useSelector((state: any) => state.user.isLoading);
+  const isLoading:boolean = useSelector((state: any) => state.user.isLoading);
   const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
   const isFirstRender = useRef(true);
 
