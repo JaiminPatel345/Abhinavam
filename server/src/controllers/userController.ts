@@ -1,23 +1,41 @@
 import {Request, Response} from "express";
-import {
-  ICompleteProfilePayload,
-  IToggleFollowingBody,
-  IUser,
-  TypedRequest
-} from "../types/user.types.js";
+import {ICompleteProfilePayload, IToggleFollowingBody, IUser, TypedRequest} from "../types/user.types.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
 import {signUploadUserWidget} from "../utils/userUtils/cloudinarySignature.js";
 
+const getMyProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError('Unauthorized', 401)
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError('Unauthorized', 401)
+    }
+    res.json(formatResponse(true, '', user));
+
+  } catch (error: any) {
+    console.error('Error in my profile:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(
+            false,
+            error.message || 'Error to get user profile'
+        )
+    );
+  }
+}
 
 const updateUserProfile = async (
     req: TypedRequest<ICompleteProfilePayload>,
     res: Response
 ) => {
   try {
-    const {about, interests,  professions, avatar ,tagline} = req.body;
+    const {about, interests, professions, avatar, tagline} = req.body;
     const userId = req.userId;
 
     // Find the user
@@ -64,12 +82,12 @@ const updateUserProfile = async (
     }
 
     // Update avatar
-    if (avatar !== undefined && avatar.url !== undefined && avatar.public_id === undefined) {
+    if (avatar !== undefined && avatar.url !== undefined && avatar.public_id !== undefined) {
       // You might want to add URL validation here
       user.avatar = avatar;
     }
 
-    if(tagline !== undefined){
+    if (tagline !== undefined) {
       user.tagline = tagline;
     }
 
@@ -196,7 +214,7 @@ const getSignature = async (req: Request, res: Response) => {
     if (!userId) {
       throw new AppError("Unauthorized", 401);
     }
-    const data = signUploadUserWidget(userId.toString() , mode);
+    const data = signUploadUserWidget(userId.toString(), mode);
     if (!data) {
       throw new AppError("Error to generate signature", 500);
     }
@@ -214,5 +232,6 @@ export default {
   getUserProfile,
   toggleFollowing,
   getSignature,
+  getMyProfile,
 
-};
+}

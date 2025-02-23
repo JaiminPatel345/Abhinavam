@@ -9,10 +9,10 @@ export interface IUser {
     url: string;
     public_id: string;
   };
-  tagLine?: string;
+  tagline?: string;
   about?: string;
   interests?: string[];
-  profession?: string[];
+  professions?: string[];
 }
 
 export interface IUserResponse {
@@ -90,7 +90,8 @@ export interface AuthState {
   isLoading: boolean;
   redirectUrl: string | null;
   isImageUploading: boolean;
-  // error: string | null;
+  lastFetched:number;
+
 }
 
 export type ImageData = {

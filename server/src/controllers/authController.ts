@@ -235,7 +235,8 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
 
 const logoutUser: LogoutUserController = async (req: Request, res: Response) => {
   try {
-    res.clearCookie('token');
+    //TODO:
+    //advance logout
     return res.json(formatResponse(true, 'Logged out successfully'));
   } catch (error) {
     console.error('Error in logout:', error);

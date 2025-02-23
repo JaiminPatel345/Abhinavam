@@ -1,9 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/types/redux.types";
 import { clearNotification } from "@redux/slice/notificationSlice";
-import {updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
+import {fetchMyData, updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
+import {useEffect} from "react";
 
 const useUser = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -20,6 +21,26 @@ const useUser = () => {
   }
 
   return { uploadUserProfile, updateUserProfile };
+};
+
+export const useUserDataManager = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { lastFetched, user } = useSelector((state:RootState) => state.user);
+
+  useEffect(() => {
+    const shouldFetchUser = () => {
+      if (!user) return true;
+      if (!lastFetched) return true;
+
+      // ReFetch if data is older than 24 hours
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      return Date.now() - lastFetched > twentyFourHours;
+    };
+
+    if (shouldFetchUser()) {
+       dispatch(fetchMyData());
+    }
+  }, []);
 };
 
 export default useUser;

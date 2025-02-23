@@ -22,4 +22,8 @@ export const userApi = {
     });
   },
 
+  fetchMe: async () => {
+    return axiosInstance.get('/users/');
+  }
+
 }

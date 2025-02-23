@@ -20,4 +20,8 @@ export const authAPI = {
     return axios.post(`${BASE_URL}/auth/register/verify-otp`, credentials);
   },
 
+  logout: async () => {
+    return axiosInstance.post('/auth/logout');
+  }
+
 };

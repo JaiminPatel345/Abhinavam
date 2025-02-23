@@ -1,5 +1,5 @@
 import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
-import {loginThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
+import {loginThunk, logoutThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
 import {useDispatch, useSelector} from 'react-redux';
 import {ThunkDispatch} from "redux-thunk";
 import {clearNotification, showNotification} from "@redux/slice/notificationSlice";
@@ -68,7 +68,13 @@ const useAuth = () => {
     return dispatch(verifyOtpThunk(credentials));
   }
 
-  return {loginUser, registerUser, verifyOtp};
+  const logoutUser = () => {
+    dispatch(clearNotification())
+    dispatch(setIsLoading(true))
+    return dispatch(logoutThunk())
+  }
+
+  return {loginUser, registerUser, verifyOtp , logoutUser};
 
 }
 
