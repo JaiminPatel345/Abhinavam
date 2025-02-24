@@ -46,6 +46,7 @@ module.exports = {
         background: {
           DEFAULT: '#F4EDD3', // Beige (Light Mode Background)
           dark: '#2C3639', // Dark Slate Gray (Dark Mode Background)
+          light: '#c2bbbb', // Beige (Light Mode Background)
         },
         // Navigation Bar
         navbar: {

@@ -15,7 +15,8 @@ export const MyButton: React.FC<MyButtonProps> =
        fontFamily = "Poppins-SemiBold", // Default font family
        fontSize = 16, // Default font size
        fontColor = "#F4EDD3", // Default font color
-       isLoading = false
+       isLoading = false,
+       disabled = false
 
      }) => {
       return (
@@ -36,6 +37,7 @@ export const MyButton: React.FC<MyButtonProps> =
                 color: fontColor, // Use provided or default font color
               }}
               loading={isLoading || false}
+              disabled={disabled}
           >
             {title} {/* Use the title prop instead of hardcoding */}
           </Button>
