@@ -9,5 +9,7 @@ export type MyButtonProps = {
   fontFamily?: string; // Optional prop for font family
   fontSize?: number; // Optional prop for font size
   fontColor?: string; // Optional prop for font color
-  isLoading?:boolean
+  isLoading?: boolean;
+  disabled?: boolean;
+
 };

@@ -84,23 +84,15 @@ export default function RootLayout() {
                       }}
                   />
 
-                  {/*/!* Main App Stack *!/*/}
-                  {/*<Stack.Screen*/}
-                  {/*  name="(app)"*/}
-                  {/*  options={{*/}
-                  {/*    headerShown: false,*/}
-                  {/*  }}*/}
-                  {/*/>*/}
+                  {/* post Stack */}
+                  <Stack.Screen
+                      name="posts"
+                      options={{
+                        headerShown: false,
+                        title: 'Abhinavam',
+                      }}
+                  />
 
-                  {/* Onboarding Stack */}
-                  {/*<Stack.Screen*/}
-                  {/*  name="(onboarding)"*/}
-                  {/*  options={{*/}
-                  {/*    headerShown: false,*/}
-                  {/*  }}*/}
-                  {/*/>*/}
-
-                  {/* Initial Route */}
                   <Stack.Screen
                       name="index"
                       options={{

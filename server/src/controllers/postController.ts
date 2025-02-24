@@ -22,7 +22,7 @@ const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) 
       description,
       owner: userId,
       tags: tags || [],
-      location,
+      location:location || {},
     };
 
     const post = await Post.create(postData);

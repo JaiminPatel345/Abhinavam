@@ -26,14 +26,13 @@ export const loginThunk = createAsyncThunk(
 
       } catch (error: any) {
         console.log("Error at login :", error.response || error);
-        console.log(error.response)
         dispatch(
             showNotification({
               type: 'DANGER',
               title: 'Login Failed',
               message: error.response.data.message || 'An unexpected error occurred.',
             }))
-        return rejectWithValue(error.response.data || "An error occurred during login");
+        return rejectWithValue(error?.response?.data || "An error occurred during login");
       }
     }
 );

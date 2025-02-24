@@ -3,6 +3,7 @@ import userReducer from "@/redux/slice/userSlice";
 import notificationReducer from "@/redux/slice/notificationSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {persistReducer, persistStore} from 'redux-persist';
+import postReducer from "@/redux/slice/postSlice";
 
 
 const persistConfig = {
@@ -21,7 +22,8 @@ export const persistedUserReducer = persistReducer(persistConfig, userReducer)
 export const store = configureStore({
   reducer: {
     user: persistedUserReducer,
-    notification: notificationReducer
+    notification: notificationReducer,
+    posts: postReducer
   },
   middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

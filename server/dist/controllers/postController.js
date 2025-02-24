@@ -24,7 +24,7 @@ const createPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             description,
             owner: userId,
             tags: tags || [],
-            location,
+            location: location || {},
         };
         const post = yield Post.create(postData);
         yield User.findByIdAndUpdate(userId, { $push: { posts: post._id } });

@@ -17,13 +17,14 @@ export default function HomeScreen() {
           <Link href="/auth/signup/VerifyOTP" className={'text-blue-600'}>Verify OTP </Link>
           <Link href="/auth/signup/AdditionalDetails" className={'text-blue-600'}>Go to additional details </Link>
           <Link href="/auth/logout" className={'text-blue-600'}>Go to logout </Link>
+          <Link href="/posts" className={'text-blue-600'}>Go to all post </Link>
+          <Link href="/posts/create" className={'text-blue-600'}>create post </Link>
           <View>
             <Text>User Id</Text>
             <Text>{user?._id}</Text>
           </View>
         </SafeAreaView>
       </>
-
   )
 }
 
