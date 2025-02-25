@@ -9,8 +9,8 @@ export const userApi = {
     return axiosInstance.patch(`/users/`, credentials);
   },
 
-  getProfileSignature: async () => {
-    return axiosInstance.get('/users/get-signature?mode=profile');
+  getProfileSignature: async (mode: string) => {
+    return axiosInstance.get(`/users/get-signature?mode=${mode}`);
   },
 
   uploadImageToCloudinary: async (formData: any) => {

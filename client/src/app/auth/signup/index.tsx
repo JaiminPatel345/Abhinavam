@@ -1,8 +1,14 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
 import {Lock, Mail, Shield, User, UserCircle} from 'lucide-react-native';
-import {Link, useRouter} from "expo-router";
+import {Link} from "expo-router";
 import {Formik} from 'formik';
 import validationSignupSchema from "@/app/auth/signup/validationSignupSchema";
 import {showNotification} from "@redux/slice/notificationSlice";
@@ -10,12 +16,12 @@ import {useDispatch, useSelector} from "react-redux";
 import useAuth from "@/hooks/useAuth";
 import {setIsLoading} from "@redux/slice/userSlice";
 import {SignupFormData} from "@/types/user.types";
+import {RootState} from "@/types/redux.types";
 
 
 export default function SignupScreen(): any {
   const [secureTextEntry, setSecureTextEntry] = useState<boolean>(true);
   const [secureConfirmTextEntry, setSecureConfirmTextEntry] = useState<boolean>(true);
-  const router = useRouter();
 
   const initialValues: SignupFormData = {
     fullName: '', username: '', email: '', password: '', confirmPassword: '',
@@ -23,23 +29,17 @@ export default function SignupScreen(): any {
 
   const dispatch = useDispatch();
   const {registerUser} = useAuth()
-  const isLoading:boolean = useSelector((state: any) => state.user.isLoading);
-  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    router.push(redirectUrl)
-  }, [redirectUrl])
+  const isLoading: boolean = useSelector((state: RootState) => state.user.isLoading);
 
 
   const handelSubmit = async (values: SignupFormData) => {
     if (!values.fullName || !values.username || !values.email || !values.password || !values.confirmPassword) {
       // console.log(errors)
-      dispatch(showNotification({message: "Please fill the form correctly ", type: "WARNING", title: "Can't Login"}));
+      dispatch(showNotification({
+        message: "Please fill the form correctly ",
+        type: "WARNING",
+        title: "Can't Login"
+      }));
 
       return;
     }
@@ -84,11 +84,19 @@ export default function SignupScreen(): any {
 
               }}
           >
-            {({handleChange, handleBlur, handleSubmit, values, errors, touched}) => (
+            {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched
+              }) => (
                 <View className="flex-1 px-6 justify-center">
                   {/* Header Section */}
                   <View className="mb-12 items-center">
-                    <Text className="font-pbold text-3xl text-primary mb-2">Create Account</Text>
+                    <Text className="font-pbold text-3xl text-primary mb-2">Create
+                      Account</Text>
                     <Text className="font-pregular text-text-muted text-center">
                       Join our community today
                     </Text>
@@ -102,7 +110,9 @@ export default function SignupScreen(): any {
                           value={values.fullName}
                           onChangeText={handleChange('fullName')}
                           onBlur={handleBlur('fullName')}
-                          left={<TextInput.Icon icon={() => <UserCircle size={20} color="#4C585B"/>}/>}
+                          left={<TextInput.Icon
+                              icon={() => <UserCircle size={20}
+                                                      color="#4C585B"/>}/>}
                           mode="outlined"
                           style={{backgroundColor: '#F4EDD3'}}
                           outlineColor="#A5BFCC"
@@ -116,7 +126,8 @@ export default function SignupScreen(): any {
                           }}
                       />
                       {touched.fullName && errors.fullName && (
-                          <Text className="text-text-error text-sm mt-1 font-pregular">
+                          <Text
+                              className="text-text-error text-sm mt-1 font-pregular">
                             {errors.fullName}
                           </Text>)}
                     </View>
@@ -128,7 +139,8 @@ export default function SignupScreen(): any {
                           value={values.username}
                           onChangeText={handleChange('username')}
                           onBlur={handleBlur('username')}
-                          left={<TextInput.Icon icon={() => <User size={20} color="#4C585B"/>}/>}
+                          left={<TextInput.Icon
+                              icon={() => <User size={20} color="#4C585B"/>}/>}
                           mode="outlined"
                           style={{backgroundColor: '#F4EDD3'}}
                           outlineColor="#A5BFCC"
@@ -142,7 +154,8 @@ export default function SignupScreen(): any {
                           }}
                       />
                       {touched.username && errors.username && (
-                          <Text className="text-text-error text-sm mt-1 font-pregular">
+                          <Text
+                              className="text-text-error text-sm mt-1 font-pregular">
                             {errors.username}
                           </Text>)}
                     </View>
@@ -154,7 +167,8 @@ export default function SignupScreen(): any {
                           value={values.email}
                           onChangeText={handleChange('email')}
                           onBlur={handleBlur('email')}
-                          left={<TextInput.Icon icon={() => <Mail size={20} color="#4C585B"/>}/>}
+                          left={<TextInput.Icon
+                              icon={() => <Mail size={20} color="#4C585B"/>}/>}
                           mode="outlined"
                           style={{backgroundColor: '#F4EDD3'}}
                           outlineColor="#A5BFCC"
@@ -167,7 +181,8 @@ export default function SignupScreen(): any {
                             },
                           }}
                       />
-                      {touched.email && errors.email && (<Text className="text-text-error text-sm mt-1 font-pregular">
+                      {touched.email && errors.email && (<Text
+                          className="text-text-error text-sm mt-1 font-pregular">
                         {errors.email}
                       </Text>)}
                     </View>
@@ -181,7 +196,8 @@ export default function SignupScreen(): any {
                           onChangeText={handleChange('password')}
                           onBlur={handleBlur('password')}
                           secureTextEntry={secureTextEntry}
-                          left={<TextInput.Icon icon={() => <Shield size={20} color="#4C585B"/>}/>}
+                          left={<TextInput.Icon icon={() => <Shield size={20}
+                                                                    color="#4C585B"/>}/>}
                           right={<TextInput.Icon
                               icon={secureTextEntry ? "eye" : "eye-off"}
                               onPress={() => setSecureTextEntry(!secureTextEntry)}
@@ -198,7 +214,8 @@ export default function SignupScreen(): any {
                           }}
                       />
                       {touched.password && errors.password && (
-                          <Text className="text-text-error text-sm mt-1 font-pregular">
+                          <Text
+                              className="text-text-error text-sm mt-1 font-pregular">
                             {errors.password}
                           </Text>)}
                     </View>
@@ -211,7 +228,8 @@ export default function SignupScreen(): any {
                           onChangeText={handleChange('confirmPassword')}
                           onBlur={handleBlur('confirmPassword')}
                           secureTextEntry={secureConfirmTextEntry}
-                          left={<TextInput.Icon icon={() => <Lock size={20} color="#4C585B"/>}/>}
+                          left={<TextInput.Icon
+                              icon={() => <Lock size={20} color="#4C585B"/>}/>}
                           right={<TextInput.Icon
                               icon={secureConfirmTextEntry ? "eye" : "eye-off"}
                               onPress={() => setSecureConfirmTextEntry(!secureConfirmTextEntry)}
@@ -228,7 +246,8 @@ export default function SignupScreen(): any {
                           }}
                       />
                       {touched.confirmPassword && errors.confirmPassword && (
-                          <Text className="text-text-error text-sm mt-1 font-pregular">
+                          <Text
+                              className="text-text-error text-sm mt-1 font-pregular">
                             {errors.confirmPassword}
                           </Text>)}
                     </View>
@@ -259,7 +278,8 @@ export default function SignupScreen(): any {
                         Already have an account?{' '}
                       </Text>
                       <TouchableOpacity>
-                        <Link href={'/auth/login'} className="text-primary underline font-psemibold">
+                        <Link href={'/auth/login'}
+                              className="text-primary underline font-psemibold">
                           Sign In
                         </Link>
                       </TouchableOpacity>

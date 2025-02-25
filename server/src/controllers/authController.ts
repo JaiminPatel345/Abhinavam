@@ -1,11 +1,20 @@
 // authController.ts
 import {Request, Response} from 'express';
 import User from '../models/userModel.js';
-import {getEmailAndOtp, incrementWrongAttempts, removeEmailAndOtp} from '../redis/redisUtils.js';
+import {
+  getEmailAndOtp,
+  incrementWrongAttempts,
+  removeEmailAndOtp
+} from '../redis/redisUtils.js';
 import {getTokens} from "../utils/tokens/getJwtToken.js";
-import {encryptPassword, validatePassword} from "../utils/userUtils/passwordEncryption.js";
-import {uploadToCloudinary} from '../utils/cloudinary.js';
-import {LogoutUserController, ValidateUserController} from "../types/user.types.js";
+import {
+  encryptPassword,
+  validatePassword
+} from "../utils/userUtils/passwordEncryption.js";
+import {
+  LogoutUserController,
+  ValidateUserController
+} from "../types/user.types.js";
 import {MongooseErrorHandler} from "../utils/errors/mongooseErrorHandler.js";
 import handleOtp from "../utils/userUtils/handleOtp.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
@@ -107,20 +116,11 @@ const completeProfile = async (req: Request, res: Response) => {
     const {userId, about, interests, profession} = req.body;
     const avatar = req.file;
 
-    if (!avatar) {
-      throw new AppError('Profile photo is required', 400);
-    }
-
-    // Upload avatar to cloudinary
-    const avatarResult = await uploadToCloudinary(avatar.path);
-    if (!avatarResult.secure_url) {
-      throw new AppError('Failed to upload profile photo', 500);
-    }
 
     const user = await User.findByIdAndUpdate(
         userId,
         {
-          avatar: avatarResult.secure_url,
+          avatar,
           about,
           interests,
           profession,
@@ -210,10 +210,10 @@ const validateUser: ValidateUserController = async (req: Request, res: Response)
 
     const validatedUser = await validatePassword(password, user, isEmail);
 
-    if(user.registrationStage === 1){
+    if (user.registrationStage === 1) {
       //TODO: i am assume it is Email
       await handleOtp(identifier)
-      res.status(401).json(formatResponse(false , "Account is not verified " , {
+      res.status(401).json(formatResponse(false, "Account is not verified ", {
         isNeedVerifyOtpVerification: true,
         user
       }))

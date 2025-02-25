@@ -26,7 +26,7 @@ export interface IReaction {
 export interface IPost extends Document {
   description?: string;
   owner: Types.ObjectId;
-  medias: Types.ObjectId[];
+  media: Types.ObjectId[];
   comments: Types.ObjectId[];
   reactions: IReaction[];
   shares: number;
@@ -45,6 +45,10 @@ export interface CreatePostBody {
     city?: string;
     country?: string;
   };
+  media:[{
+    url: string;
+    public_id: string;
+  }]
 }
 
 export interface UpdatePostBody {

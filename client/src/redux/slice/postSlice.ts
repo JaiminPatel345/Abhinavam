@@ -1,14 +1,12 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {createPostThunk} from "@redux/thunks/postsThunk";
 
- interface IPostSliceInitState {
-  isLoading: Boolean;
-  redirectUrl: String | null;
+interface IPostSliceInitState {
+  isLoading: boolean;
 }
 
-const initialState:IPostSliceInitState = {
+const initialState: IPostSliceInitState = {
   isLoading: false,
-  redirectUrl: null,
 }
 
 export const postSlice = createSlice({
@@ -18,9 +16,7 @@ export const postSlice = createSlice({
     setIsLoading: (state, action) => {
       state.isLoading = action.payload;
     },
-    setRedirectUrl: (state, action) => {
-      state.redirectUrl = action.payload;
-    }
+
   },
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
@@ -30,7 +26,6 @@ export const postSlice = createSlice({
         })
         .addCase(createPostThunk.fulfilled, (state, action) => {
           state.isLoading = false;
-          state.redirectUrl = '/';
         })
         .addCase(createPostThunk.rejected, (state, action) => {
           state.isLoading = false;
@@ -39,5 +34,5 @@ export const postSlice = createSlice({
 
 })
 
-export const {setIsLoading, setRedirectUrl} = postSlice.actions;
+export const {setIsLoading} = postSlice.actions;
 export default postSlice.reducer;

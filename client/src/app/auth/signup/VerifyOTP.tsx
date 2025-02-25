@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   NativeSyntheticEvent,
   SafeAreaView,
@@ -8,34 +8,25 @@ import {
   View
 } from 'react-native';
 import {Button} from 'react-native-paper';
-import {useRouter} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {ThunkDispatch} from "redux-thunk";
-import {clearNotification, showNotification} from "@redux/slice/notificationSlice";
+import {
+  clearNotification,
+  showNotification
+} from "@redux/slice/notificationSlice";
 import {RootState} from "@/types/redux.types";
 import useAuth from "@/hooks/useAuth";
 import {setIsLoading} from "@redux/slice/userSlice";
 import {IUser} from "@/types/user.types";
 
 export default function VerifyOTPScreen() {
-  const router = useRouter();
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const inputRefs = useRef<(RNTextInput | null)[]>([]);
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
-  const user:IUser|null = useSelector((state: RootState) => state.user.user);
+  const user: IUser | null = useSelector((state: RootState) => state.user.user);
   const isLoading = useSelector((state: RootState) => state.user.isLoading);
   const {verifyOtp} = useAuth();
 
-  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    router.push(redirectUrl)
-  }, [redirectUrl])
 
   // Handle OTP input changes
   const handleOtpChange = (value: string, index: number) => {
@@ -105,7 +96,8 @@ export default function VerifyOTPScreen() {
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-1 px-6 justify-center">
           <View className="mb-12 items-center">
-            <Text className="font-pbold text-3xl text-primary mb-2">Verify OTP</Text>
+            <Text className="font-pbold text-3xl text-primary mb-2">Verify
+              OTP</Text>
             <Text className="font-pregular text-text-muted text-center">
               Enter the OTP sent to your email
             </Text>
@@ -120,9 +112,9 @@ export default function VerifyOTPScreen() {
                       maxLength={1}
                       keyboardType="number-pad"
                       value={otp[index]}
-                      onKeyPress={(e) =>{
+                      onKeyPress={(e) => {
                         console.log("key pressed")
-                          handleKeyPress(e, index)
+                        handleKeyPress(e, index)
                       }}
                       onChangeText={(value) => handleOtpChange(value, index)}
 

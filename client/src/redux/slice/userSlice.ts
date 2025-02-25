@@ -1,7 +1,16 @@
 import {createSlice} from "@reduxjs/toolkit";
 import {AuthState} from "@/types/user.types";
-import {loginThunk, logoutThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
-import {fetchMyData, updateUserProfileThunk, uploadUserProfileThunk} from "@redux/thunks/userThunk";
+import {
+  loginThunk,
+  logoutThunk,
+  signupThunk,
+  verifyOtpThunk
+} from "@redux/thunks/authThunk";
+import {
+  fetchMyData,
+  updateUserProfileThunk,
+  uploadUserProfileThunk
+} from "@redux/thunks/userThunk";
 
 
 const initialState: AuthState = {
@@ -19,11 +28,6 @@ export const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    logout: (state) => {
-      state.user = null;
-      state.isLoggedIn = false;
-      state.redirectUrl = '/';
-    },
     setIsLoading: (state, action) => {
       state.isLoading = action.payload;
     },
@@ -33,6 +37,9 @@ export const userSlice = createSlice({
     setIsImageUploading: (state, action) => {
       state.isImageUploading = action.payload;
     },
+    setRedirectUrl: (state, action) => {
+      state.redirectUrl = action.payload;
+    }
 
   },
   extraReducers: (builder) => {
@@ -145,5 +152,10 @@ export const userSlice = createSlice({
   },
 })
 
-export const {logout, setIsLoading, setIsLoggedIn, setIsImageUploading} = userSlice.actions;
+export const {
+  setRedirectUrl,
+  setIsLoading,
+  setIsLoggedIn,
+  setIsImageUploading
+} = userSlice.actions;
 export default userSlice.reducer;

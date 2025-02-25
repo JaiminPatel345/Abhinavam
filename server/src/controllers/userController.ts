@@ -4,7 +4,7 @@ import {AppError, formatResponse} from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
-import {signUploadUserWidget} from "../utils/userUtils/cloudinarySignature.js";
+import {signUploadUserWidget} from "../utils/cloudinarySignature.js";
 
 const getMyProfile = async (req: Request, res: Response) => {
   try {
@@ -211,6 +211,7 @@ const getSignature = async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
     const mode = req.params.mode || 'profile';
+    console.log(mode)
     if (!userId) {
       throw new AppError("Unauthorized", 401);
     }

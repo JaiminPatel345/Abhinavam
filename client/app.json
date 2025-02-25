@@ -30,9 +30,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/abhinavam-logo.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
+          "image": "./src/assets/images/abhinavam-splash-screen.png",
+          "imageWidth": null,
+          "resizeMode": "cover",
           "backgroundColor": "#ffffff"
         }
       ],[

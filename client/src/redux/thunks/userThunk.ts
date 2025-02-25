@@ -4,6 +4,8 @@ import getSignature from "@/utils/userUtils/getSignature";
 import {userApi} from "@/api/userApi";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
+import {SignatureResponse} from "@/types/response.types";
+import {makeFormDataForImageUpload} from "@/utils/comman";
 
 interface CloudinaryUploadResponse {
   secure_url: string;
@@ -13,11 +15,6 @@ interface CloudinaryUploadResponse {
   height: number;
 }
 
-interface SignatureResponse {
-  signature: string;
-  timestamp: number;
-  public_id: string;
-}
 
 export const uploadUserProfileThunk = createAsyncThunk(
     'users/upload-profile',
@@ -30,33 +27,13 @@ export const uploadUserProfileThunk = createAsyncThunk(
         const imageUri = imageResult.assets[0].uri;
 
         // Get upload signature from backend
-        const signatureData: SignatureResponse = await getSignature();
-        console.log("get signature ", signatureData)
+        const signatureData: SignatureResponse = await getSignature('profile');
 
         // Create form data for upload
-        const formData = new FormData();
-        formData.append('file', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'profile-image.jpg',
-        } as any);
+        const formData = makeFormDataForImageUpload([imageUri], signatureData)[0];
 
-        // Add Cloudinary parameters
-        formData.append('api_key', process.env.EXPO_PUBLIC_CLOUDINARY_API_KEY || 'abc');
-        formData.append('cloud_name', process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || 'abc');
-        formData.append('folder', 'profile');
-        formData.append('public_id', signatureData.public_id);
-        formData.append('signature', signatureData.signature);
-        formData.append('timestamp', signatureData.timestamp.toString());
-
-        console.log("Full form : ", formData)
-
-        console.log("start to upload at cloudinary")
         const response = await userApi.uploadImageToCloudinary(formData);
-        console.log("Response :", response)
-
         const result: CloudinaryUploadResponse = response.data;
-        console.log("Result", result);
 
         dispatch(showNotification({
           type: 'SUCCESS',

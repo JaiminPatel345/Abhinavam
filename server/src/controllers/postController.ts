@@ -11,7 +11,7 @@ const {ObjectId} = mongoose.Types;
 // Create a new post
 const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) => {
   try {
-    const {description, tags, location} = req.body;
+    const {description, tags, location , media} = req.body;
     const userId = req.userId;
 
     if (!userId) {
@@ -23,6 +23,7 @@ const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) 
       owner: userId,
       tags: tags || [],
       location:location || {},
+      media: media || [],
     };
 
     const post = await Post.create(postData);

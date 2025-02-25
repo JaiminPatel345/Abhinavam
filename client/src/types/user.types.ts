@@ -1,3 +1,6 @@
+import type {Route} from "expo-router";
+
+
 export interface IUser {
   _id: string;
   name: string;
@@ -25,16 +28,16 @@ export interface UserState {
   token: string | null;
 }
 
-export interface ICompleteProfilePayload{
-      avatar?: {
-        url: string,
-        public_id: string,
-      },
-      tagline?: string,
-      about?: string,
-      interests?: string[],
-      professions?: string[]
-    }
+export interface ICompleteProfilePayload {
+  avatar?: {
+    url: string,
+    public_id: string,
+  },
+  tagline?: string,
+  about?: string,
+  interests?: string[],
+  professions?: string[]
+}
 
 export interface ILoginCredentials {
   email: string;
@@ -43,7 +46,7 @@ export interface ILoginCredentials {
 
 
 export interface SignupFormData {
-fullName: string;
+  fullName: string;
   username: string;
   email: string;
   //TODO: make separate for mobile
@@ -88,9 +91,9 @@ export interface AuthState {
   user: IUser | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  redirectUrl: string | null;
+  redirectUrl: Route| null;
   isImageUploading: boolean;
-  lastFetched:number;
+  lastFetched: number;
 
 }
 

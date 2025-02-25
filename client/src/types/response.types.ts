@@ -3,3 +3,9 @@ export interface IApiResponse<T = any> {
   message: string;
   data?: T;
 }
+
+export interface ISignatureResponse {
+  signature: string;
+  timestamp: number;
+  folder: string;
+}

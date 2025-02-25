@@ -1,5 +1,11 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {ScrollView, StyleSheet, useWindowDimensions, View} from 'react-native';
+import React, {useState} from 'react';
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View
+} from 'react-native';
 import {
   Button,
   Card,
@@ -15,56 +21,35 @@ import {MyButton} from "@components/ui/Button";
 import {useSelector} from "react-redux";
 import {RootState} from "@/types/redux.types";
 import usePost from "@/hooks/usePost";
-import {useRouter} from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import {ICreatePostForm, ILocation, IMediaItem} from "@/types/posts.types";
 
-interface Location {
-  city: string;
-  country: string;
-}
-
-interface CreatePostForm {
-  description: string;
-  location?: Location;
-  tags: string[];
-  mediaIds: string[];
-}
 
 const CreatePost: React.FC = () => {
   const theme = useTheme();
   const {height} = useWindowDimensions();
 
-  const [form, setForm] = useState<CreatePostForm>({
+  const [form, setForm] = useState<ICreatePostForm>({
     description: '',
     tags: [],
-    mediaIds: [],
   });
   const [tagInput, setTagInput] = useState<string>('');
   const [showLocationDialog, setShowLocationDialog] = useState<boolean>(false);
-  const [location, setLocation] = useState<Location>({
+  const [location, setLocation] = useState<ILocation>({
     city: '',
     country: ''
   });
-  const router = useRouter();
+  // Add state for selected images
+  const [selectedImages, setSelectedImages] = useState<Array<string>>([]);
+
   const {createPost} = usePost();
-  const isLoading = useSelector((state: RootState) => state.posts.isLoading);
-
-  const redirectUrl = useSelector((state: RootState) => state.posts.redirectUrl);
-  const isFirstRender = useRef(true);
-
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    router.push(redirectUrl)
-  }, [redirectUrl])
-
+  const isLoading: boolean = useSelector((state: RootState) => state.posts.isLoading);
 
   // Placeholder functions for API calls
   const handleSubmitPost = async () => {
     try {
       console.log('Submitting post:', form);
-      createPost(form);
+      createPost(form, selectedImages);
 
     } catch (error) {
       console.error('Error creating post:', error);
@@ -73,17 +58,50 @@ const CreatePost: React.FC = () => {
 
   const handleAddMedia = async () => {
     try {
-      console.log('Adding media');
+      const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== 'granted') {
+        console.log('Sorry, we need camera roll permissions to make this work!');
+        return;
+      }
+
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos', 'livePhotos'],
+        allowsEditing: false,
+        quality: 1,
+        // allowsMultipleSelection: true,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        console.log('Media added:');
+        // Store the image URI in the local state for display
+        setSelectedImages(prevImages => [...prevImages, result.assets[0].uri]);
+
+        // Fix TypeScript error by properly handling the media array
+        const newMediaItem: IMediaItem = {
+          url: result.assets[0].uri,
+          public_id: `temp_${Date.now()}` // Temporary ID until actual upload
+        };
+
+      }
+
     } catch (error) {
       console.error('Error adding media:', error);
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    // Remove from selectedImages
+    setSelectedImages(prevImages => prevImages.filter((_, i) => i !== index));
+
+
   };
 
   const handleAddTag = () => {
     if (tagInput.trim() && !form.tags.includes(tagInput.trim())) {
       setForm(prev => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim().replace(' ' , '_')]
+        tags: [...prev.tags, tagInput.trim().replaceAll(' ', '_')]
       }));
       setTagInput('');
     }
@@ -124,8 +142,26 @@ const CreatePost: React.FC = () => {
                       ...prev,
                       description: text
                     }))}
-                    style={[styles.descriptionInput, {minHeight: height * 0.3}]}
+                    style={[styles.descriptionInput, {minHeight: height * 0.2}]}
                 />
+
+                {/* Display Selected Images */}
+                {selectedImages.length > 0 && (
+                    <View style={styles.selectedImagesContainer}>
+                      {selectedImages.map((uri, index) => (
+                          <View key={index} style={styles.imageWrapper}>
+                            <Image source={{uri}} style={styles.selectedImage}/>
+                            <IconButton
+                                icon="close"
+                                size={20}
+                                style={styles.removeImageButton}
+                                iconColor="white"
+                                onPress={() => handleRemoveImage(index)}
+                            />
+                          </View>
+                      ))}
+                    </View>
+                )}
 
                 {/* Media Attachment Section */}
                 <View style={styles.mediaSection}>
@@ -133,30 +169,17 @@ const CreatePost: React.FC = () => {
                     Add to your post
                   </Text>
                   <View style={styles.mediaButtons}>
-                    <IconButton
-                        icon="image"
-                        mode="contained"
-                        size={24}
-                        onPress={handleAddMedia}
-                        containerColor={theme.colors.primary}
-                        iconColor="white"
-                    />
-                    <IconButton
-                        icon="camera"
-                        mode="contained"
-                        size={24}
-                        onPress={handleAddMedia}
-                        containerColor={theme.colors.primary}
-                        iconColor="white"
-                    />
-                    <IconButton
-                        icon="video"
-                        mode="contained"
-                        size={24}
-                        onPress={handleAddMedia}
-                        containerColor={theme.colors.primary}
-                        iconColor="white"
-                    />
+                    <View style={styles.addImageContainer}>
+
+                      <IconButton
+                          icon="image"
+                          mode="contained"
+                          size={24}
+                          onPress={handleAddMedia}
+                          containerColor={theme.colors.primary}
+                          iconColor="white"
+                      />
+                    </View>
                   </View>
                 </View>
               </Card.Content>
@@ -205,19 +228,8 @@ const CreatePost: React.FC = () => {
             </Card>
           </View>
 
-          {/* Submit Button */}
-          {/*<Button*/}
-          {/*  mode="contained"*/}
-          {/*  onPress={handleSubmitPost}*/}
-          {/*  disabled={!form.description.trim() && form.mediaIds.length === 0}*/}
-          {/*  style={styles.submitButton}*/}
-          {/*  contentStyle={styles.submitButtonContent}*/}
-          {/*>*/}
-          {/*  Post*/}
-          {/*</Button>*/}
-
           <MyButton title={'Post'}
-                    disabled={!form.description.trim() && form.mediaIds.length === 0}
+                    disabled={!form.description.trim() && selectedImages?.length === 0}
                     onPressAction={handleSubmitPost}
                     isLoading={isLoading}
           />
@@ -232,7 +244,7 @@ const CreatePost: React.FC = () => {
               <TextInput
                   mode="outlined"
                   label="City"
-                  value={location.city}
+                  defaultValue={location.city}
                   onChangeText={(text) => setLocation(prev => ({
                     ...prev,
                     city: text
@@ -242,7 +254,7 @@ const CreatePost: React.FC = () => {
               <TextInput
                   mode="outlined"
                   label="Country"
-                  value={location.country}
+                  defaultValue={location.country}
                   onChangeText={(text) => setLocation(prev => ({
                     ...prev,
                     country: text
@@ -284,9 +296,32 @@ const styles = StyleSheet.create({
   descriptionCard: {
     marginBottom: 16,
     elevation: 2,
-
   },
-  descriptionInput: {},
+  descriptionInput: {
+    fontSize: 14,
+  },
+  selectedImagesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+    gap: 8,
+  },
+  imageWrapper: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  selectedImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    margin: 0,
+  },
   mediaSection: {
     marginTop: 16,
     borderTopWidth: 1,
@@ -300,10 +335,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
   },
+  addImageContainer: {
+    position: 'relative',
+    width: 60,
+    height: 60,
+  },
+  imageIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  plusIcon: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    margin: 0,
+  },
   tagsCard: {
     marginBottom: 16,
     elevation: 2,
-
   },
   tagInput: {
     marginBottom: 8,

@@ -1,5 +1,12 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import {TextInput} from 'react-native-paper';
 import {Camera, Plus} from 'lucide-react-native';
 import * as Progress from 'react-native-progress';
@@ -14,7 +21,7 @@ import {setIsImageUploading} from "@redux/slice/userSlice";
 import useUser from "@/hooks/useUser";
 import {ICompleteProfilePayload} from "@/types/user.types";
 import {showNotification} from "@redux/slice/notificationSlice";
-import {Link, useRouter} from "expo-router";
+import {Link} from "expo-router";
 
 export default function AdditionalDetailsScreen() {
   const user = useSelector((state: RootState) => state.user.user);
@@ -31,21 +38,10 @@ export default function AdditionalDetailsScreen() {
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
   const dispatch = useDispatch();
   const {uploadUserProfile, updateUserProfile} = useUser();
-  const router = useRouter()
 
 
   const isLoading = useSelector((state: any) => state.user.isLoading);
-  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
-  const isFirstRender = useRef(true);
 
-  //redirect after successfully submission
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    router.push(redirectUrl)
-  }, [redirectUrl])
 
   useEffect(() => {
     setPhoto(user?.avatar?.url || 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png')
@@ -149,12 +145,15 @@ export default function AdditionalDetailsScreen() {
                     {!photo && (
                         <View className="items-center justify-center h-full">
                           <Camera size={40} color="#4C585B"/>
-                          <Text className="font-pmedium text-sm text-primary mt-2">Add Photo</Text>
+                          <Text
+                              className="font-pmedium text-sm text-primary mt-2">Add
+                            Photo</Text>
                         </View>
                     )}
 
                     {isImageUploading && (
-                        <View className="absolute w-full h-full items-center justify-center bg-black/30">
+                        <View
+                            className="absolute w-full h-full items-center justify-center bg-black/30">
                           <Progress.Circle
                               size={50}
                               indeterminate={true}
@@ -181,7 +180,8 @@ export default function AdditionalDetailsScreen() {
 
               {/* About Input */}
               <View>
-                <Text className="font-pmedium text-primary mb-2 ">About Yourself</Text>
+                <Text className="font-pmedium text-primary mb-2 ">About
+                  Yourself</Text>
                 <TextInput
                     value={about}
                     onChangeText={setAbout}
@@ -198,7 +198,8 @@ export default function AdditionalDetailsScreen() {
 
               {/* Interests Selection */}
               <View>
-                <Text className="font-pmedium text-primary mb-2">Interests</Text>
+                <Text
+                    className="font-pmedium text-primary mb-2">Interests</Text>
                 <TouchableOpacity
                     onPress={() => setShowInterestsModal(true)}
                     className="flex-row items-center border border-gray-300 rounded-lg p-3 bg-white"
@@ -214,7 +215,8 @@ export default function AdditionalDetailsScreen() {
 
               {/* Professions Selection */}
               <View>
-                <Text className="font-pmedium text-primary mb-2">Profession</Text>
+                <Text
+                    className="font-pmedium text-primary mb-2">Profession</Text>
                 <TouchableOpacity
                     onPress={() => setShowProfessionsModal(true)}
                     className="flex-row items-center border border-gray-300 rounded-lg p-3 bg-white"
@@ -259,9 +261,11 @@ export default function AdditionalDetailsScreen() {
 
               {/* Complete Button */}
 
-              <MyButton title={'Complete Profile'} isLoading={isLoading} onPressAction={() => handleSubmit()}/>
+              <MyButton title={'Complete Profile'} isLoading={isLoading}
+                        onPressAction={() => handleSubmit()}/>
               <View>
-                <Link href={"/"} className="font-pmedium text-primary text-center">
+                <Link href={"/"}
+                      className="font-pmedium text-primary text-center">
                   Skip for now
                 </Link>
               </View>

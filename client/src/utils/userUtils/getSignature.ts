@@ -1,7 +1,10 @@
 import {userApi} from "@/api/userApi";
+import {ISignatureResponse} from "@/types/response.types";
 
-const getSignature = async () => {
-  const signatureResponse = await userApi.getProfileSignature();
+const getSignature: (mode:string) => Promise<ISignatureResponse>
+
+= async (mode) => {
+  const signatureResponse = await userApi.getProfileSignature(mode);
   return signatureResponse.data.data;
 }
 

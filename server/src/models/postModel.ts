@@ -1,5 +1,10 @@
 import {Model, model, Schema, Types} from 'mongoose';
-import {ILocation, IPost, IReaction, PostReactionType} from '../types/post.types.js'
+import {
+  ILocation,
+  IPost,
+  IReaction,
+  PostReactionType
+} from '../types/post.types.js'
 
 
 // Schema for location
@@ -27,6 +32,12 @@ const reactionSchema = new Schema<IReaction>({
   }
 }, {_id: false});
 
+const mediaSchema = new Schema({
+  url: String,
+  public_id: String,
+}, { _id: false });
+
+
 // Main post schema
 const postSchema = new Schema<IPost>({
   description: {
@@ -39,10 +50,9 @@ const postSchema = new Schema<IPost>({
     required: true,
     index: true,
   },
-  medias: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Media',
-  }],
+
+  media:[mediaSchema],
+
   comments: [{
     type: Schema.Types.ObjectId,
     ref: 'Comment',
@@ -68,7 +78,7 @@ const postSchema = new Schema<IPost>({
 // Custom validation to ensure either `description` or `medias` is provided
 postSchema.path('description').validate(function (this: IPost) {
   const hasDescription = !!this.description?.trim(); // Check if description exists and is not just whitespace
-  const hasMedias = Array.isArray(this.medias) && this.medias.length > 0; // Check if medias array is not empty
+  const hasMedias = Array.isArray(this.media) && this.media.length > 0; // Check if medias array is not empty
   return hasDescription || hasMedias; // At least one must be true
 }, 'A post must have either a description or media.');
 

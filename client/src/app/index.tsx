@@ -4,10 +4,15 @@ import {Link} from "expo-router";
 import '@css/global.css';
 import {useUserDataManager} from "@/hooks/useUser";
 import {useSelector} from "react-redux";
+import {useRedirect} from "@/hooks/userRedirect";
+import * as SplashScreen from 'expo-splash-screen';
+
 
 export default function HomeScreen() {
+  SplashScreen.preventAutoHideAsync();
   useUserDataManager()
   const user = useSelector((state: any) => state.user.user)
+  useRedirect()
   return (
       <>
         <SafeAreaView style={{paddingLeft: 5}}>

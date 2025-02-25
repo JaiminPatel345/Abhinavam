@@ -1,40 +1,19 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {Formik} from "formik";
 import validationLoginSchema from "@/app/auth/login/validationLoginSchema";
 import useAuth from "@/hooks/useAuth";
 import {Lock, Mail} from 'lucide-react-native';
-import {Link, useRouter} from "expo-router";
+import {Link} from "expo-router";
 import {RootState} from "@/types/redux.types";
-import {showNotification} from "@redux/slice/notificationSlice";
 
 export default function LoginScreen() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const isLoading: boolean = useSelector((state: RootState) => state.user.isLoading);
   const {loginUser} = useAuth();
-  const dispatch = useDispatch();
-  const router = useRouter()
-  const redirectUrl = useSelector((state: any) => state.user.redirectUrl);
-  const isFirstRender = useRef(true);
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-    if (redirectUrl === '/auth/signup/VerifyOTP') {
-      dispatch(showNotification(
-          {
-            type: 'WARNING',
-            title: 'OTP Verification Required',
-            message: 'Please verify your OTP to continue'
-          }
-      ))
-    }
-    router.push(redirectUrl)
-  }, [redirectUrl])
 
   const handleLogin = (values: any) => {
     loginUser(values);
@@ -45,7 +24,8 @@ export default function LoginScreen() {
         <View className="flex-1 px-6 justify-center">
           {/* Header Section */}
           <View className="mb-12 items-center">
-            <Text className="font-pbold text-4xl text-primary mb-2">Welcome Back</Text>
+            <Text className="font-pbold text-4xl text-primary mb-2">Welcome
+              Back</Text>
             <Text className="font-pregular text-text-muted text-center">
               Please sign in to continue
             </Text>
@@ -61,7 +41,14 @@ export default function LoginScreen() {
                 handleLogin(values);
               }}
           >
-            {({handleChange, handleBlur, handleSubmit, values, errors, touched}) => (
+            {({
+                handleChange,
+                handleBlur,
+                handleSubmit,
+                values,
+                errors,
+                touched
+              }) => (
                 <View className="space-y-4">
                   {/* Email Input */}
                   <View>
@@ -71,7 +58,8 @@ export default function LoginScreen() {
                         onChangeText={handleChange('email')}
                         onBlur={handleBlur('email')}
                         error={touched.email && Boolean(errors.email)}
-                        left={<TextInput.Icon icon={() => <Mail size={20} color="#4C585B"/>}/>}
+                        left={<TextInput.Icon
+                            icon={() => <Mail size={20} color="#4C585B"/>}/>}
                         mode="outlined"
                         style={{backgroundColor: '#F4EDD3'}}
                         outlineColor="#A5BFCC"
@@ -84,7 +72,8 @@ export default function LoginScreen() {
                         }}
                     />
                     {touched.email && errors.email && (
-                        <Text className="text-text-error text-sm mt-1 font-pregular">
+                        <Text
+                            className="text-text-error text-sm mt-1 font-pregular">
                           {errors.email}
                         </Text>
                     )}
@@ -99,7 +88,8 @@ export default function LoginScreen() {
                         onBlur={handleBlur('password')}
                         secureTextEntry={secureTextEntry}
                         error={touched.password && Boolean(errors.password)}
-                        left={<TextInput.Icon icon={() => <Lock size={20} color="#4C585B"/>}/>}
+                        left={<TextInput.Icon
+                            icon={() => <Lock size={20} color="#4C585B"/>}/>}
                         right={
                           <TextInput.Icon
                               icon={secureTextEntry ? "eye" : "eye-off"}
@@ -118,7 +108,8 @@ export default function LoginScreen() {
                         }}
                     />
                     {touched.password && errors.password && (
-                        <Text className="text-text-error text-sm mt-1 font-pregular">
+                        <Text
+                            className="text-text-error text-sm mt-1 font-pregular">
                           {errors.password}
                         </Text>
                     )}
@@ -157,7 +148,8 @@ export default function LoginScreen() {
                       Don't have an account?{' '}
                     </Text>
                     <TouchableOpacity>
-                      <Link href={'/auth/signup'} className="text-primary font-psemibold">
+                      <Link href={'/auth/signup'}
+                            className="text-primary font-psemibold">
                         Sign Up
                       </Link>
                     </TouchableOpacity>
