@@ -7,6 +7,15 @@ export enum PostReactionType {
   INSPIRE = 'inspire', // 💫
 }
 
+export interface IReaction {
+  type: PostReactionType;
+  user: {
+    username: string;
+    avatar: string;
+  };
+  createdAt: Date;
+}
+
 export interface UpdatePostBody {
   description?: string;
   tags?: string[];
@@ -48,4 +57,42 @@ export interface ICreatePostForm {
 
 export interface ICreatePostSubmit extends ICreatePostForm {
   media: IMediaItem[];
+}
+
+export interface IOwner{
+  username: string;
+  avatar: {
+    url: string;
+  };
+}
+
+export interface IPost  {
+  _id:string;
+  description?: string;
+  owner: IOwner;
+  media: {
+    url: string;
+    public_id: string;
+    _id?: string;
+  }[];
+  comments: IComment[] | [];
+  reactions: IReaction[] | [];
+  shares: number;
+  location?: ILocation;
+  isArchived: boolean;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IComment  {
+  content: string;
+  author: IOwner;
+  post: string; //post id
+  parentComment?: string //comment id
+  replies: string[]; //comment ids
+  likes: string[]; //user ids
+  isEdited: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
