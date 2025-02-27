@@ -1,8 +1,13 @@
 import {clearNotification} from "@redux/slice/notificationSlice";
 import {useDispatch} from "react-redux";
-import {createPostThunk} from "@redux/thunks/postsThunk";
+import {
+  addReactionThunk,
+  createPostThunk,
+  fetchPostsThunk, removeReactionThunk
+} from "@redux/thunks/postsThunk";
 import {ThunkDispatch} from "redux-thunk";
 import {ICreatePostForm} from "@/types/posts.types";
+import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
 
 const usePost = () => {
     const dispatch = useDispatch<ThunkDispatch<any,any,any>>();
@@ -12,7 +17,21 @@ const usePost = () => {
     return dispatch(createPostThunk({credentials, selectedImages}));
   }
 
-  return {createPost};
+  const fetchPosts = (credentials: IAllPostsFetch) => {
+    dispatch(clearNotification());
+    return dispatch(fetchPostsThunk(credentials));
+  }
+
+  const addReaction = (credentials:IAddReaction) => {
+    dispatch(clearNotification());
+    return dispatch(addReactionThunk(credentials));
+  }
+  const removeReaction = (postId:string) => {
+    dispatch(clearNotification());
+    return dispatch(removeReactionThunk(postId));
+  }
+
+  return {createPost , fetchPosts , addReaction , removeReaction};
 }
 
 export default usePost;

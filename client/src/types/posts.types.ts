@@ -1,6 +1,6 @@
 // Enum for post reactions
 //TODO: add more
-export enum PostReactionType {
+export enum IPostReactionType {
   WOW = 'wow',         // 🔥
   VIBE = 'vibe',      // ✨
   RESPECT = 'respect', // 🙌
@@ -8,7 +8,7 @@ export enum PostReactionType {
 }
 
 export interface IReaction {
-  type: PostReactionType;
+  type: IPostReactionType;
   user: {
     username: string;
     avatar: string;
@@ -27,7 +27,7 @@ export interface UpdatePostBody {
 }
 
 export interface ReactionBody {
-  type: PostReactionType;
+  type: IPostReactionType;
 }
 
 export interface CreateCommentBody {
@@ -59,15 +59,15 @@ export interface ICreatePostSubmit extends ICreatePostForm {
   media: IMediaItem[];
 }
 
-export interface IOwner{
+export interface IOwner {
   username: string;
   avatar: {
     url: string;
   };
 }
 
-export interface IPost  {
-  _id:string;
+export interface IPost {
+  _id: string;
   description?: string;
   owner: IOwner;
   media: {
@@ -85,7 +85,7 @@ export interface IPost  {
   updatedAt: Date;
 }
 
-export interface IComment  {
+export interface IComment {
   content: string;
   author: IOwner;
   post: string; //post id
@@ -95,4 +95,12 @@ export interface IComment  {
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface IPostSliceInitState {
+  isLoading: boolean;
+  posts: Record<string, IPost> | null;
+  likedPosts: Record<string, IPostReactionType>;
+  page: number;
+  limit: number;
 }

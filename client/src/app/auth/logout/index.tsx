@@ -16,7 +16,7 @@ const Logout = () => {
   return (
       <>
         <View>
-          <MyButton title={'Logout'} onPressAction={handleLogout()}/>
+          <MyButton title={'Logout'} onPressAction={() => handleLogout()}/>
         </View>
       </>
   )

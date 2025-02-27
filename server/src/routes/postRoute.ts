@@ -16,7 +16,7 @@ router.route("/:id")
     .put(verifyToken, postController.updatePost)
     .delete(verifyToken, postController.deletePost)
 
-router.route("/:id/reaction")
+router.route("/:id/reactions")
     .post(verifyToken, likeLimiter, postController.addReaction)
     .delete(verifyToken, postController.removeReaction)
 

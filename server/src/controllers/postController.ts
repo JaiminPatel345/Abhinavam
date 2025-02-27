@@ -227,9 +227,21 @@ const getAllPosts = async (req: Request, res: Response) => {
         .skip((page - 1) * limit)
         .limit(limit)
         .populate('owner', 'username avatar')
-        .populate('comments');
+        .populate({
+          path:'reactions.user',
+          select:'username -_id'
+        })
+        .populate({
+          path:'comments',
+          populate:{
+            path:'author',
+            select:'username avatar -_id'
+          }
+        })
 
-    res.json(formatResponse(true, 'Posts retrieved successfully', posts));
+
+    console.log(`sends page:${page} with limit of ${limit}`)
+    res.json(formatResponse(true, 'Posts retrieved successfully', {posts}));
 
   } catch (error: any) {
     console.error('Error fetching user posts:', error);

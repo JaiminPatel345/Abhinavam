@@ -1,12 +1,29 @@
 import axiosInstance from "@/api/axiosClient";
 import {ICreatePostSubmit} from "@/types/posts.types";
 import axios from "axios";
+import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
 
 export const postAPI = {
 
+  //fetch all posts
+  fetchAllPosts: async (credentials: IAllPostsFetch) => {
+    return axiosInstance.get(`/posts/?page=${credentials.page}&limit=${credentials.limit}`);
+
+  },
+
+  //create new Post
   create: async (credentials: ICreatePostSubmit) => {
     return axiosInstance.post('/posts/?mode=posts', credentials);
   },
+
+  addReaction: async (credentials:IAddReaction) => {
+    return axiosInstance.post(`/posts/${credentials.postId}/reactions` , {type : credentials.type});
+  },
+
+  removeReaction: async (postId:string) => {
+    return axiosInstance.delete(`/posts/${postId}/reactions`);
+  },
+
 
   //multiple images
   uploadImagesToCloudinary: async (formData: any) => {
