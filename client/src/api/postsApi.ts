@@ -3,7 +3,7 @@ import {ICreatePostSubmit} from "@/types/posts.types";
 import axios from "axios";
 import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
 
-export const postAPI = {
+export const postsApi = {
 
   //fetch all posts
   fetchAllPosts: async (credentials: IAllPostsFetch) => {

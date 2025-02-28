@@ -1,7 +1,15 @@
 import {Request, Response} from 'express';
-import {AppError, formatResponse, TypedRequestBody} from "../types/custom.types.js";
+import {
+  AppError,
+  formatResponse,
+  TypedRequestBody
+} from "../types/custom.types.js";
 import {IReaction, Post} from "../models/postModel.js";
-import {CreatePostBody, ReactionBody, UpdatePostBody} from "../types/post.types.js";
+import {
+  CreatePostBody,
+  ReactionBody,
+  UpdatePostBody
+} from "../types/post.types.js";
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 
@@ -11,7 +19,7 @@ const {ObjectId} = mongoose.Types;
 // Create a new post
 const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) => {
   try {
-    const {description, tags, location , media} = req.body;
+    const {description, tags, location, media} = req.body;
     const userId = req.userId;
 
     if (!userId) {
@@ -22,7 +30,7 @@ const createPost = async (req: TypedRequestBody<CreatePostBody>, res: Response) 
       description,
       owner: userId,
       tags: tags || [],
-      location:location || {},
+      location: location || {},
       media: media || [],
     };
 
@@ -228,19 +236,12 @@ const getAllPosts = async (req: Request, res: Response) => {
         .limit(limit)
         .populate('owner', 'username avatar')
         .populate({
-          path:'reactions.user',
-          select:'username -_id'
-        })
-        .populate({
-          path:'comments',
-          populate:{
-            path:'author',
-            select:'username avatar -_id'
-          }
+          path: 'reactions.user',
+          select: 'username -_id'
         })
 
 
-    console.log(`sends page:${page} with limit of ${limit}`)
+    // console.log(`sends page:${page} with limit of ${limit}`)
     res.json(formatResponse(true, 'Posts retrieved successfully', {posts}));
 
   } catch (error: any) {
@@ -252,21 +253,21 @@ const getAllPosts = async (req: Request, res: Response) => {
 }
 
 const toggleArchive = async (req: Request, res: Response) => {
-  try{
+  try {
     const postId = req.params.id;
     const userId = req.userId
     const post = await Post.findById(postId);
     if (!post) {
       throw new AppError('Post not found', 404);
     }
-    if(post.owner.toString() !== userId) {
+    if (post.owner.toString() !== userId) {
       throw new AppError('Unauthorized user', 404);
     }
     const isArchived = post.isArchived;
     post.isArchived = !isArchived;
     post.save()
     res.json(formatResponse(true, `${!isArchived ? 'Archived' : 'Unarchived'}  successfully`, post));
-  }catch (error: any) {
+  } catch (error: any) {
     console.error('Error fetching user posts:', error);
     res.status(error.statusCode || 500).json(
         formatResponse(false, error.message || 'Error fetching  posts')

@@ -50,6 +50,7 @@
     "react-native-country-picker-modal": "^2.0.0",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-gesture-handler": "~2.20.2",
+    "react-native-heroicons": "^4.0.0",
     "react-native-paper": "^5.13.1",
     "react-native-progress": "^5.0.1",
     "react-native-reanimated": "^3.16.7",

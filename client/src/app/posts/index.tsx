@@ -33,7 +33,6 @@ export default function Posts() {
   const fetchNewPosts = () => {
     dispatch(updateToNextPage());
   }
-  console.log(posts)
 
   if (posts === null) {
     return <>

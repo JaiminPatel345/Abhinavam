@@ -9,3 +9,16 @@ export interface IAddReaction{
   postId: string;
   type: IPostReactionType;
 }
+
+export interface IAddCommentRequest {
+  postId: string;
+  content: string;
+  parentComment?: string;
+}
+
+export interface IFetchCommentsRequest {
+  postId: string;
+  page?: number;
+  limit?: number;
+  parentComment?: string;
+}

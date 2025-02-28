@@ -17,6 +17,8 @@ import usePost from "@/hooks/usePost";
 import {RootState} from "@/types/redux.types";
 import {useDispatch, useSelector} from "react-redux";
 import {likeAPost, unlikeAPost} from "@redux/slice/postSlice";
+import Comments from "@/app/posts/Comments";
+import {showNotification} from "@redux/slice/notificationSlice";
 
 const {width} = Dimensions.get("window");
 
@@ -24,6 +26,7 @@ const SinglePost = ({post}: { post: IPost }) => {
   // State for modal and image viewing
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showComments, setShowComments] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [uniqueReactions, setUniqueReactions] = useState<IPostReactionType[]>([]);
   const [reactionCount, setReactionCount] = useState<number>(0);
@@ -37,6 +40,7 @@ const SinglePost = ({post}: { post: IPost }) => {
   // Format timestamp
   const formattedDate = format(new Date(post.createdAt), "MMM d, yyyy");
 
+
   // Reaction emojis mapping
   const reactionEmojis = {
     [IPostReactionType.WOW]: "🔥",
@@ -49,12 +53,14 @@ const SinglePost = ({post}: { post: IPost }) => {
 
   const userReaction = likedPosts[post._id];
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => state.user.user);
+
 
 // Calculate initial values when the component renders or when post changes
   useEffect(() => {
     setUniqueReactions(Array.from(new Set(post.reactions.map(r => r.type))));
     setReactionCount(post.reactions.length);
-  }, []);
+  }, [post]);
 
   // Handle reactions
   const handleReaction = (reactionType: IPostReactionType) => {
@@ -77,8 +83,23 @@ const SinglePost = ({post}: { post: IPost }) => {
 
       // If user already had a different reaction, we need to replace it
       const hadPreviousReaction = userReaction !== undefined;
+      if (user === null) {
+        dispatch(showNotification({
+          type: 'DANGER',
+          title: 'Cannot like post',
+          message: 'You must be logged in to like a post'
+        }))
+        return
+      }
 
-      dispatch(likeAPost({postId: post._id, type: reactionType}));
+      dispatch(likeAPost({
+        postId: post._id, type: reactionType, user: {
+          username: user.username,
+          avatar: {
+            url: user.avatar?.url || ''
+          }
+        }
+      }));
       addReaction({postId: post._id, type: reactionType});
 
       // If user had no previous reaction, increment count
@@ -115,7 +136,8 @@ const SinglePost = ({post}: { post: IPost }) => {
 
   // Handle comment
   const handleComment = () => {
-    console.log(`User wants to comment on post ${post._id}`);
+    setShowComments(!showComments);
+
   };
 
   // Handle share
@@ -130,6 +152,7 @@ const SinglePost = ({post}: { post: IPost }) => {
     );
     setCurrentImageIndex(slideIndex);
   };
+
 
   return (
       <View
@@ -295,9 +318,7 @@ const SinglePost = ({post}: { post: IPost }) => {
                         React
                       </Text>
                     </View>
-                )
-
-                }
+                )}
               </View>
 
             </TouchableOpacity>
@@ -335,6 +356,14 @@ const SinglePost = ({post}: { post: IPost }) => {
             <Feather name="share" size={18} color="#6B7280"/>
             <Text className="ml-2 text-gray-600 font-medium">Share</Text>
           </TouchableOpacity>
+        </View>
+
+        {/*Comments*/}
+        <View>
+          {showComments && (
+              <Comments postId={post._id}
+              />
+          )}
         </View>
 
         {/* Image Viewer Modal */}

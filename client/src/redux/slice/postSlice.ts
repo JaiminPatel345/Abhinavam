@@ -1,9 +1,11 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {createPostThunk, fetchPostsThunk} from "@redux/thunks/postsThunk";
 import {
+  IOwner,
   IPost,
   IPostReactionType,
-  IPostSliceInitState
+  IPostSliceInitState,
+  IReaction
 } from "@/types/posts.types";
 
 
@@ -26,9 +28,33 @@ export const postSlice = createSlice({
     },
     likeAPost: (state, action: PayloadAction<{
       postId: string,
-      type: IPostReactionType
+      type: IPostReactionType,
+      user: IOwner,
+
     }>) => {
       state.likedPosts[action.payload.postId] = action.payload.type;
+      const myReaction: IReaction = {
+        user: action.payload.user,
+        type: action.payload.type,
+      }
+      if (state.posts) {
+        if (state.posts[action.payload.postId].reactions.length === 0) {
+          state.posts[action.payload.postId].reactions = [myReaction];
+          return
+        }
+        state.posts[action.payload.postId].reactions.filter(reaction => reaction.user.username === action.payload.user.username);
+
+        //TODO: Improve performance
+        state.posts[action.payload.postId].reactions =
+            state.posts[action.payload.postId].reactions.map(reaction => {
+              if (reaction.user.username === action.payload.user.username) {
+                return myReaction;
+              } else {
+                return reaction;
+              }
+            })
+
+      }
     },
     unlikeAPost: (state, action: PayloadAction<{
       postId: string,

@@ -26,7 +26,7 @@ router.route("/user/:userId")
 router.route("/:id/archive")
     .post(verifyToken , postController.toggleArchive)
 
-router.route("/:id/comment")
+router.route("/:id/comments")
     .get(verifyToken, commentController.getPostComments)
     .post(verifyToken, commentLimiter, commentController.createComment)
 

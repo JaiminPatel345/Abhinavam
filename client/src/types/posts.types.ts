@@ -9,11 +9,7 @@ export enum IPostReactionType {
 
 export interface IReaction {
   type: IPostReactionType;
-  user: {
-    username: string;
-    avatar: string;
-  };
-  createdAt: Date;
+  user: IOwner;
 }
 
 export interface UpdatePostBody {
@@ -56,7 +52,7 @@ export interface ICreatePostForm {
 }
 
 export interface ICreatePostSubmit extends ICreatePostForm {
-  media: IMediaItem[];
+  media?: IMediaItem[];
 }
 
 export interface IOwner {
@@ -75,7 +71,7 @@ export interface IPost {
     public_id: string;
     _id?: string;
   }[];
-  comments: IComment[] | [];
+  comments: string[] ;
   reactions: IReaction[] | [];
   shares: number;
   location?: ILocation;
@@ -86,6 +82,7 @@ export interface IPost {
 }
 
 export interface IComment {
+  _id: string;
   content: string;
   author: IOwner;
   post: string; //post id
@@ -104,3 +101,4 @@ export interface IPostSliceInitState {
   page: number;
   limit: number;
 }
+

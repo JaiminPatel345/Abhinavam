@@ -1,6 +1,10 @@
 import {Request, Response} from 'express';
 import {CreateCommentBody, UpdateCommentBody} from "../types/post.types.js";
-import {AppError, formatResponse, TypedRequestBody} from "../types/custom.types.js";
+import {
+  AppError,
+  formatResponse,
+  TypedRequestBody
+} from "../types/custom.types.js";
 import {Post} from "../models/postModel.js";
 import {Comment} from "../models/commentModel.js";
 import mongoose, {Types} from "mongoose";
@@ -71,43 +75,33 @@ const getPostComments = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const postId = req.params.id;
+    console.log("post id ", postId)
 
     if (!Types.ObjectId.isValid(postId)) {
       throw new AppError('Invalid post ID', 400);
     }
 
 
-    const [comments, total] = await Promise.all([
-      Comment.find({
-        post: postId,
-        parentComment: null // Only get top-level comments
-      })
-          .sort({createdAt: -1})
-          .skip((page - 1) * limit)
-          .limit(limit)
-          .populate('author', 'username avatar')
-          .populate({
-            path: 'replies',
-            populate: {
-              path: 'author',
-              select: 'username avatar'
-            }
-          })
-          .lean()
-      ,
-      Comment.countDocuments({
-        post: postId,
-        parentComment: null
-      })
-    ])
+    const comments = await Comment.find({
+      post: postId,
+      parentComment: null // Only get top-level comments
+    })
+        .sort({createdAt: -1})
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('author', 'username avatar')
+        .populate({
+          path: 'replies',
+          populate: {
+            path: 'author',
+            select: 'username avatar'
+          }
+        })
+        .lean()
+
 
     res.json(formatResponse(true, 'Comments retrieved successfully', {
       comments,
-      pagination: {
-        total,
-        page,
-        pages: Math.ceil(total / limit)
-      }
     }));
   } catch (error: any) {
     console.error('Error fetching comments:', error);
@@ -185,7 +179,7 @@ const deleteComment = async (req: Request, res: Response) => {
   }
 };
 
-const toggleLike = async (req: Request, res: Response) => {
+const likeComment = async (req: Request, res: Response) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.userId);
     const commentId = req.params.commentId;
@@ -200,19 +194,12 @@ const toggleLike = async (req: Request, res: Response) => {
       throw new AppError('Comment not found', 404);
     }
 
-    const userLiked = comment.likes.includes(userId);
-
-    if (userLiked) {
-      comment.likes = comment.likes.filter(id => id.toString() !== userId.toString());
-    } else {
-      comment.likes.push(userId);
-    }
-
+    comment.likes.push(userId);
     await comment.save();
 
     res.json(formatResponse(
         true,
-        userLiked ? 'Like removed successfully' : 'Comment liked successfully',
+        'Comment liked successfully',
         comment
     ));
   } catch (error: any) {
@@ -222,6 +209,41 @@ const toggleLike = async (req: Request, res: Response) => {
     );
   }
 };
+
+const unlikeComment = async (req: Request, res: Response) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.userId);
+    const commentId = req.params.commentId;
+
+    if (!userId) {
+      throw new AppError('User not authenticated', 401);
+    }
+
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      throw new AppError('Comment not found', 404);
+    }
+
+
+    comment.likes = comment.likes.filter(id => id.toString() !== userId.toString());
+
+    await comment.save();
+    console.log(comment.likes)
+
+    res.json(formatResponse(
+        true,
+        'Like removed successfully',
+        comment
+    ));
+  } catch (error: any) {
+    console.error('Error toggling like:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(false, error.message || 'Error toggling like')
+    );
+  }
+};
+
 
 const getReplies = async (req: Request, res: Response) => {
   try {
@@ -262,7 +284,8 @@ export default {
   getPostComments,
   updateComment,
   deleteComment,
-  toggleLike,
+  likeComment,
+  unlikeComment,
   getReplies,
 
 }
