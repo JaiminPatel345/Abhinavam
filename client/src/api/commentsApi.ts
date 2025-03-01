@@ -1,4 +1,8 @@
-import { IAddCommentRequest, IFetchCommentsRequest } from "@/types/request.types";
+import {
+  IAddCommentRequest,
+  IFetchCommentsRequest,
+  IFetchReplyRequest
+} from "@/types/request.types";
 import axiosInstance from "@/api/axiosClient";
 
 export const commentAPI = {
@@ -13,7 +17,10 @@ export const commentAPI = {
   },
 
   addComment: (commentData: IAddCommentRequest) => {
-    return axiosInstance.post(`/posts/${commentData.postId}/comments`, {content: commentData.content, parentCommentId: commentData.parentComment});
+    return axiosInstance.post(`/posts/${commentData.postId}/comments`, {
+      content: commentData.content,
+      parentCommentId: commentData.parentComment
+    });
   },
 
   likeComment: (commentId: string) => {
@@ -22,5 +29,14 @@ export const commentAPI = {
 
   unlikeComment: (commentId: string) => {
     return axiosInstance.delete(`/comments/like/${commentId}`);
+  },
+
+  fetchReplies: (request: IFetchReplyRequest) => {
+    return axiosInstance.get(`/comments/${request.commentId}/replies`, {
+      params: {
+        limit: request.limit,
+        page: request.page
+      }
+    });
   }
 };

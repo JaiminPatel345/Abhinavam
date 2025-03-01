@@ -2,7 +2,11 @@ import {createAsyncThunk} from "@reduxjs/toolkit";
 import {commentAPI} from "@/api/commentsApi";
 import {showNotification} from "@redux/slice/notificationSlice";
 import {IComment} from "@/types/posts.types";
-import {IAddCommentRequest, IFetchCommentsRequest} from "@/types/request.types";
+import {
+  IAddCommentRequest,
+  IFetchCommentsRequest,
+  IFetchReplyRequest
+} from "@/types/request.types";
 import {RootState} from "@/types/redux.types";
 
 export const fetchCommentsThunk = createAsyncThunk(
@@ -115,6 +119,39 @@ export const unlikeCommentThunk = createAsyncThunk(
           message: error.response?.data?.message || error.message || error.response?.message || 'An unexpected error occurred.'
         }));
         return rejectWithValue(error?.response?.data || "An error occurred while unliking comment");
+      }
+    }
+);
+
+export const fetchRepliesThunk = createAsyncThunk(
+    '/comments/fetchReplies',
+    async (request: IFetchReplyRequest, {
+      dispatch,
+      rejectWithValue,
+    }) => {
+      try {
+        const response = await commentAPI.fetchReplies(request);
+        const replies: IComment[] = response.data.data.replies;
+        const userId:string = response.data.data.userId;
+
+        let likedReplies: Record<string, boolean> = {};
+        if (userId) {
+          replies.forEach((reply: IComment) => {
+            if (reply.likes.includes(userId)) {
+              likedReplies[reply._id] = true;
+            }
+          });
+        }
+
+        return {replies, commentId:request.commentId , likedReplies};
+      } catch (error: any) {
+        console.log("Error fetching replies:", error.response || error);
+        dispatch(showNotification({
+          type: 'DANGER',
+          title: 'Cannot fetch replies',
+          message: error.response?.data?.message || error.response?.message || 'An unexpected error occurred.'
+        }));
+        return rejectWithValue(error?.response?.data || "An error occurred while fetching replies");
       }
     }
 );

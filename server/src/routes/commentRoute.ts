@@ -11,10 +11,11 @@ router.route("/like/:commentId")
     .delete(verifyToken, commentController.unlikeComment);
 
 router.route("/:commentId")
-    .get(commentController.getReplies)
     .put(verifyToken, commentController.updateComment)
     .delete(verifyToken, commentController.deleteComment);
 
+router.route("/:commentId/replies")
+    .get(commentController.getReplies)
 
 
 export default router;

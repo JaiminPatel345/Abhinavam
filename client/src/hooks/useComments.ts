@@ -1,13 +1,18 @@
-import { clearNotification } from "@redux/slice/notificationSlice";
-import { useDispatch } from "react-redux";
-import { ThunkDispatch } from "redux-thunk";
+import {clearNotification} from "@redux/slice/notificationSlice";
+import {useDispatch} from "react-redux";
+import {ThunkDispatch} from "redux-thunk";
 import {
   addCommentThunk,
   fetchCommentsThunk,
+  fetchRepliesThunk,
   likeCommentThunk,
   unlikeCommentThunk
 } from "@redux/thunks/commentsThunk";
-import { IAddCommentRequest, IFetchCommentsRequest } from "@/types/request.types";
+import {
+  IAddCommentRequest,
+  IFetchCommentsRequest,
+  IFetchReplyRequest
+} from "@/types/request.types";
 
 const useComments = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
@@ -22,21 +27,28 @@ const useComments = () => {
     return dispatch(fetchCommentsThunk(request));
   };
 
-  const likeComment = (commentId:string , userId:string) => {
+  const likeComment = (commentId: string, userId: string) => {
     dispatch(clearNotification());
     return dispatch(likeCommentThunk({commentId, userId}));
   };
 
-  const unlikeComment = (commentId:string , userId:string) => {
+  const unlikeComment = (commentId: string, userId: string) => {
     dispatch(clearNotification());
     return dispatch(unlikeCommentThunk({commentId, userId}));
   };
+
+  const fetchReplies = (request: IFetchReplyRequest) => {
+    dispatch(clearNotification());
+    return dispatch(fetchRepliesThunk(request));
+  }
 
   return {
     addComment,
     fetchComments,
     likeComment,
-    unlikeComment
+    unlikeComment,
+    fetchReplies,
+
   };
 };
 

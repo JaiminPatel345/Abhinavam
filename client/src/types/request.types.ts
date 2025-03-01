@@ -22,3 +22,9 @@ export interface IFetchCommentsRequest {
   limit?: number;
   parentComment?: string;
 }
+
+export interface IFetchReplyRequest {
+  commentId: string;
+  page: number;
+  limit: number;
+}

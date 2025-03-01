@@ -48,10 +48,10 @@ const createComment = async (
     });
 
     if (parentCommentId) {
-      await Comment.findByIdAndUpdate(parentCommentId, {$push: {replies: comment._id}})
+      await Comment.findByIdAndUpdate(parentCommentId, {$addToSet: {replies: comment._id}})
     } else {
       await Post.findByIdAndUpdate(postId, {
-        $push: {comments: comment._id}
+        $addToSet: {comments: comment._id}
       });
     }
 
@@ -188,14 +188,12 @@ const likeComment = async (req: Request, res: Response) => {
       throw new AppError('User not authenticated', 401);
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findByIdAndUpdate(commentId, {$addToSet: {likes: userId}});
 
     if (!comment) {
       throw new AppError('Comment not found', 404);
     }
 
-    comment.likes.push(userId);
-    await comment.save();
 
     res.json(formatResponse(
         true,
@@ -219,16 +217,13 @@ const unlikeComment = async (req: Request, res: Response) => {
       throw new AppError('User not authenticated', 401);
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findByIdAndUpdate(commentId, {$pull: {likes: userId}});
 
     if (!comment) {
       throw new AppError('Comment not found', 404);
     }
 
 
-    comment.likes = comment.likes.filter(id => id.toString() !== userId.toString());
-
-    await comment.save();
     console.log(comment.likes)
 
     res.json(formatResponse(
@@ -251,25 +246,20 @@ const getReplies = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const [replies, total] = await Promise.all([
+    const [replies] = await Promise.all([
       Comment.find({parentComment: commentId})
           .sort({createdAt: -1})
           .skip((page - 1) * limit)
           .limit(limit)
           .populate('author', 'username avatar')
           .lean()
-      ,
-      Comment.countDocuments({parentComment: commentId})
     ])
 
 
     res.json(formatResponse(true, 'Replies retrieved successfully', {
       replies,
-      pagination: {
-        total,
-        page,
-        pages: Math.ceil(total / limit)
-      }
+      userId: req.userId,
+
     }));
   } catch (error: any) {
     console.error('Error fetching replies:', error);
