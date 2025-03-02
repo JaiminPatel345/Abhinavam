@@ -71,7 +71,6 @@ const useAuth = () => {
 
   const logoutUser = () => {
     dispatch(clearNotification())
-    dispatch(setIsLoading(true))
     return dispatch(logoutThunk())
   }
 

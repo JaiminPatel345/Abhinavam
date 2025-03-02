@@ -148,7 +148,17 @@ export const userSlice = createSlice({
           state.isLoggedIn = false;
           state.redirectUrl = '/';
           console.log('logout done')
+
         })
+        .addCase(logoutThunk.rejected, (state) => {
+          state.isLoading = false;
+          state.user = null;
+          state.isLoggedIn = false;
+          state.redirectUrl = '/';
+
+        })
+
+
   },
 })
 

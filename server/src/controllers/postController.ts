@@ -197,33 +197,6 @@ const removeReaction = async (req: Request, res: Response) => {
   }
 }
 
-// Get user posts
-const getUserPosts = async (req: Request, res: Response) => {
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
-    const userId = req.params.userId || req.userId
-
-    if (!userId) {
-      throw new AppError('User ID is required', 400);
-    }
-
-    const posts = await Post.find({owner: userId, isArchived: false})
-        .sort({createdAt: -1})
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate('owner', 'username avatar')
-        .populate('comments');
-
-    res.json(formatResponse(true, 'Posts retrieved successfully', posts));
-  } catch (error: any) {
-    console.error('Error fetching user posts:', error);
-    res.status(error.statusCode || 500).json(
-        formatResponse(false, error.message || 'Error fetching user posts')
-    );
-  }
-}
-
 const getAllPosts = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -282,7 +255,6 @@ export default {
   deletePost,
   addReaction,
   removeReaction,
-  getUserPosts,
   getAllPosts,
   toggleArchive,
 

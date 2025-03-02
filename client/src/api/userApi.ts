@@ -24,6 +24,11 @@ export const userApi = {
 
   fetchMe: async () => {
     return axiosInstance.get('/users/');
+  },
+
+  uploadImageToDB: async (avatar: {url:string , public_id:string}) => {
+    return axiosInstance.put('/users/upload-avatar', {avatar});
   }
+
 
 }

@@ -3,9 +3,10 @@ import {IPostReactionType} from "@/types/posts.types";
 export interface IAllPostsFetch {
   page: number;
   limit: number;
+  userId?: string;
 }
 
-export interface IAddReaction{
+export interface IAddReaction {
   postId: string;
   type: IPostReactionType;
 }
@@ -25,6 +26,12 @@ export interface IFetchCommentsRequest {
 
 export interface IFetchReplyRequest {
   commentId: string;
+  page: number;
+  limit: number;
+}
+
+export interface IFetchUserPostsRequest {
+  userId: string;
   page: number;
   limit: number;
 }

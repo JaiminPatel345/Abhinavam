@@ -22,7 +22,7 @@ import {showNotification} from "@redux/slice/notificationSlice";
 
 const {width} = Dimensions.get("window");
 
-const SinglePost = ({post}: { post: IPost }) => {
+const SinglePost = ({post , showConnect=false}: { post: IPost , showConnect?:boolean }) => {
   // State for modal and image viewing
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -176,7 +176,8 @@ const SinglePost = ({post}: { post: IPost }) => {
                 </View>
             )}
           </View>
-          <TouchableOpacity onPress={() => console.log("Connect with user")}>
+          {showConnect && (
+              <TouchableOpacity onPress={() => console.log("Connect with user")}>
             <LinearGradient
                 colors={['#8a2387', '#e94057', '#f27121']}
                 className="px-3 py-1 rounded-full"
@@ -186,6 +187,7 @@ const SinglePost = ({post}: { post: IPost }) => {
               <Text className="text-white font-medium text-xs">Connect</Text>
             </LinearGradient>
           </TouchableOpacity>
+          )}
         </View>
 
         {/* Description */}

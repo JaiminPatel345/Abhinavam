@@ -116,6 +116,7 @@ export const postSlice = createSlice({
         .addCase(createPostThunk.rejected, (state, action) => {
           state.isLoading = false;
         })
+
   }
 
 })

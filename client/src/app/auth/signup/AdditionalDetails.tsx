@@ -37,7 +37,7 @@ export default function AdditionalDetailsScreen() {
 
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
   const dispatch = useDispatch();
-  const {uploadUserProfile, updateUserProfile} = useUser();
+  const {uploadUserAvatar, updateUserProfile} = useUser();
 
 
   const isLoading = useSelector((state: any) => state.user.isLoading);
@@ -65,7 +65,7 @@ export default function AdditionalDetailsScreen() {
 
 
         // Upload the image - pass the entire result
-        await uploadUserProfile(result);
+        await uploadUserAvatar(result);
       }
     } catch (error) {
       console.error('Error uploading photo:', error);

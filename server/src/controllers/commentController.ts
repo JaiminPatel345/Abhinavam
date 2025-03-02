@@ -75,7 +75,6 @@ const getPostComments = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const postId = req.params.id;
-    console.log("post id ", postId)
 
     if (!Types.ObjectId.isValid(postId)) {
       throw new AppError('Invalid post ID', 400);

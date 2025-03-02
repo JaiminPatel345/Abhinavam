@@ -1,10 +1,16 @@
 import {Request, Response} from "express";
-import {ICompleteProfilePayload, IToggleFollowingBody, IUser, TypedRequest} from "../types/user.types.js";
+import {
+  ICompleteProfilePayload,
+  IToggleFollowingBody,
+  IUser,
+  TypedRequest
+} from "../types/user.types.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
 import User from "../models/userModel.js";
 import INTERESTS from '../utils/userUtils/interested.js';
 import PROFESSIONS from '../utils/userUtils/professions.js';
 import {signUploadUserWidget} from "../utils/cloudinarySignature.js";
+import mongoose from "mongoose";
 
 const getMyProfile = async (req: Request, res: Response) => {
   try {
@@ -119,7 +125,11 @@ const getUserProfile = async (req: TypedRequest<{}>, res: Response) => {
     const userId = req.params.userId;
 
     const user = await User.findById(userId)
-        .select('name username email about interests profession avatar isProfileComplete')
+        .select('name username email about interests profession avatar isProfileComplete followers following posts ')
+        .populate({
+          path: 'posts',
+          options: {limit: 10}
+        })
         .lean();
 
     if (!user) {
@@ -211,7 +221,6 @@ const getSignature = async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
     const mode = req.params.mode || 'profile';
-    console.log(mode)
     if (!userId) {
       throw new AppError("Unauthorized", 401);
     }
@@ -228,11 +237,95 @@ const getSignature = async (req: Request, res: Response) => {
   }
 }
 
+const getPostsOfUsers = async (req: Request, res: Response) => {
+  try {
+    const {userId} = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const result = await User.aggregate([
+      // Match specific user
+      {$match: {_id: new mongoose.Types.ObjectId(userId)}},
+
+      // First, capture the user info we need
+      {
+        $project: {
+          username: 1,
+          avatar: 1,
+          posts: 1
+        }
+      },
+
+      // Lookup to get posts
+      {
+        $lookup: {
+          from: "posts",
+          localField: "posts",
+          foreignField: "_id",
+          as: "userPosts"
+        }
+      },
+
+      // Unwind to flatten the posts array
+      {$unwind: "$userPosts"},
+
+      // Skip and limit for pagination
+      {$skip: (page - 1) * limit},
+      {$limit: limit},
+
+      // Add the user fields to the post
+      {
+        $addFields: {
+          "userPosts.owner": {
+            _id: "$_id",
+            username: "$username",
+            avatar: "$avatar"
+          }
+        }
+      },
+
+      // Replace the root with the post document
+      {$replaceRoot: {newRoot: "$userPosts"}}
+    ]);
+
+    console.log(result);
+
+    res.json(formatResponse(true, "done", {posts: result}));
+
+  } catch (error: any) {
+    console.error('Error in getMyPosts:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(false, error.message || "Error to get posts",)
+    )
+  }
+}
+
+const updateAvatar = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      throw new AppError("User not found", 404);
+    }
+    const avatar = req.body.avatar
+    await User.findByIdAndUpdate(userId, {
+      avatar
+    }).lean()
+    res.json(formatResponse(true, "Image successfully updated"))
+  } catch (error: any) {
+    console.error('Error in updateAvatar:', error);
+    res.status(error.statusCode || 500).json(
+        formatResponse(false, error.message || "Error to updateAvatar",)
+    )
+  }
+}
+
 export default {
   updateUserProfile,
   getUserProfile,
   toggleFollowing,
   getSignature,
   getMyProfile,
+  getPostsOfUsers,
+  updateAvatar,
 
 }

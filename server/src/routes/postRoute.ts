@@ -20,14 +20,11 @@ router.route("/:id/reactions")
     .post(verifyToken, likeLimiter, postController.addReaction)
     .delete(verifyToken, postController.removeReaction)
 
-router.route("/user/:userId")
-    .get(postController.getUserPosts)
-
 router.route("/:id/archive")
     .post(verifyToken , postController.toggleArchive)
 
 router.route("/:id/comments")
-    .get(verifyToken, commentController.getPostComments)
+    .get( commentController.getPostComments)
     .post(verifyToken, commentLimiter, commentController.createComment)
 
 

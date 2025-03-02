@@ -4,8 +4,12 @@ import getSignature from "@/utils/userUtils/getSignature";
 import {userApi} from "@/api/userApi";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
-import {SignatureResponse} from "@/types/response.types";
+import {ISignatureResponse} from "@/types/response.types";
 import {makeFormDataForImageUpload} from "@/utils/comman";
+import {IFetchUserPostsRequest} from "@/types/request.types";
+import {IPost} from "@/types/posts.types";
+import {RootState} from "@/types/redux.types";
+import {getLikedPosts} from "@/utils/posts/getLikedPosts";
 
 interface CloudinaryUploadResponse {
   secure_url: string;
@@ -27,7 +31,7 @@ export const uploadUserProfileThunk = createAsyncThunk(
         const imageUri = imageResult.assets[0].uri;
 
         // Get upload signature from backend
-        const signatureData: SignatureResponse = await getSignature('profile');
+        const signatureData: ISignatureResponse = await getSignature('profile');
 
         // Create form data for upload
         const formData = makeFormDataForImageUpload([imageUri], signatureData)[0];
@@ -35,11 +39,16 @@ export const uploadUserProfileThunk = createAsyncThunk(
         const response = await userApi.uploadImageToCloudinary(formData);
         const result: CloudinaryUploadResponse = response.data;
 
+        console.log('Upload result:', result);
+
+
         dispatch(showNotification({
           type: 'SUCCESS',
           title: 'Success',
           message: 'Profile image updated successfully',
         }));
+
+        await userApi.uploadImageToDB({url:result.secure_url , public_id:result.public_id});
 
         return result;
 
@@ -95,3 +104,4 @@ export const fetchMyData = createAsyncThunk('users/', async (_, {rejectWithValue
     return rejectWithValue(error.message);
   }
 })
+

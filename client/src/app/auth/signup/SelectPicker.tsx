@@ -3,16 +3,17 @@ import {FlatList, Modal, Text, TouchableOpacity, View} from "react-native";
 import {Button, Chip, Searchbar} from "react-native-paper";
 import {SelectPickerProps} from "@/types/user.types";
 
- const SelectPicker: React.FC<SelectPickerProps> = ({
-                                                            visible,
-                                                            onDismiss,
-                                                            title,
-                                                            items,
-                                                            searchValue,
-                                                            onSearchChange,
-                                                            selectedItems,
-                                                            onItemSelect
-                                                          }) => {
+const SelectPicker: React.FC<SelectPickerProps> = ({
+                                                     visible,
+                                                     onDismiss,
+                                                     title,
+                                                     items,
+                                                     searchValue,
+                                                     onSearchChange,
+                                                     selectedItems,
+                                                     onItemSelect,
+                                                     onSave
+                                                   }) => {
   const filteredItems = items.filter((item: string) =>
       item.toLowerCase().includes(searchValue.toLowerCase())
   );
@@ -46,7 +47,8 @@ import {SelectPickerProps} from "@/types/user.types";
       >
         <View className="flex-1 bg-black/50 justify-end">
           <View className="bg-background rounded-t-3xl p-6 max-h-[80%]">
-            <Text className="font-pbold text-xl text-primary mb-4">{title}</Text>
+            <Text
+                className="font-pbold text-xl text-primary mb-4">{title}</Text>
 
             <View className="mb-4">
               <Searchbar
@@ -93,4 +95,4 @@ import {SelectPickerProps} from "@/types/user.types";
 };
 
 
- export default SelectPicker;
+export default SelectPicker;

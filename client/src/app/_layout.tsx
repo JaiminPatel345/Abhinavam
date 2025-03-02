@@ -1,14 +1,16 @@
 import React from 'react';
 import {StyleSheet, Text} from 'react-native';
-import {Stack, Tabs} from "expo-router";
+import {Stack} from "expo-router";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {MD3LightTheme, PaperProvider} from "react-native-paper";
 import {Provider} from "react-redux";
 import {persistor, store} from "@/redux/store";
 import {AlertNotificationRoot} from "react-native-alert-notification";
-import GlobalNotificationListener from "@components/alert/GlobalNotificationListener";
-import {useFonts} from 'expo-font';
-import { PersistGate } from 'redux-persist/integration/react'
+import GlobalNotificationListener
+  from "@components/alert/GlobalNotificationListener";
+import {PersistGate} from 'redux-persist/integration/react'
+import {useUserDataManager} from "@/hooks/useUser";
+import {useRedirect} from "@/hooks/userRedirect";
 
 // Custom theme configuration
 const theme = {
@@ -35,16 +37,9 @@ const theme = {
 };
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    'SFProText-Regular': require('../../assets/fonts/SpaceMono-Regular.ttf'),
-    'SFProText-Medium': require('../../assets/fonts/Poppins-Medium.ttf'),
-    'SFProText-Bold': require('../../assets/fonts/Poppins-Bold.ttf'),
-    'Abhinavam-Logo': require('../../assets/fonts/Poppins-SemiBold.ttf'), // Custom font for logo
-  });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+
+
 
   return (
       <Provider store={store}>
@@ -77,10 +72,10 @@ export default function RootLayout() {
                 >
 
                   <Stack.Screen
-                    name="(tabs)"
-                    options={{
-                      headerShown: false,
-                    }}
+                      name="(tabs)"
+                      options={{
+                        headerShown: false,
+                      }}
                   />
 
 

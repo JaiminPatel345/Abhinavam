@@ -3,6 +3,7 @@ import express, {Request, Response} from 'express';
 import 'dotenv/config';
 import {connectRedis} from './redis/redis.js';
 import connectDB from "./configs/database.js";
+import cors from 'cors'
 
 // Import routes
 import authRouter from './routes/authRoute.js';
@@ -20,6 +21,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use(cors())
 
 // Extend Express Request type to include user
 declare global {

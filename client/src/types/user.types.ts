@@ -1,4 +1,5 @@
 import type {Route} from "expo-router";
+import {IPost} from "@/types/posts.types";
 
 
 export interface IUser {
@@ -7,7 +8,6 @@ export interface IUser {
   username: string;
   email: string;
   mobile?: string;
-  password: string;
   avatar?: {
     url: string;
     public_id: string;
@@ -16,17 +16,11 @@ export interface IUser {
   about?: string;
   interests?: string[];
   professions?: string[];
+  followers: string[]; //user Id array  , not populated
+  following: string[]; //user id
+  posts: string[]; // post id array
 }
 
-export interface IUserResponse {
-  user: IUser | null,
-  token: string | null;
-}
-
-export interface UserState {
-  user: IUser | null;
-  token: string | null;
-}
 
 export interface ICompleteProfilePayload {
   avatar?: {
@@ -71,6 +65,7 @@ export interface SelectPickerProps {
   onSearchChange: (text: string) => void;
   selectedItems: string[];
   onItemSelect: (item: string) => void;
+  onSave: () => void;
 }
 
 export interface IRegisterUserRequest {
@@ -91,15 +86,8 @@ export interface AuthState {
   user: IUser | null;
   isLoggedIn: boolean;
   isLoading: boolean;
-  redirectUrl: Route| null;
+  redirectUrl: Route | null;
   isImageUploading: boolean;
   lastFetched: number;
-
-}
-
-export type ImageData = {
-  uri: string;
-  type: string;
-  name: string;
 
 }

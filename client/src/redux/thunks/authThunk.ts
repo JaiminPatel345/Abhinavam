@@ -96,8 +96,8 @@ export const logoutThunk = createAsyncThunk(
     "auth/logout",
     async (_, {dispatch, rejectWithValue}) => {
       try {
-        await TokenService.removeTokens();
         const response = await authAPI.logout();
+        await TokenService.removeTokens();
         dispatch(
             showNotification({
               type: 'SUCCESS',

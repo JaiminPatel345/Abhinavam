@@ -1,7 +1,11 @@
 import axiosInstance from "@/api/axiosClient";
 import {ICreatePostSubmit} from "@/types/posts.types";
 import axios from "axios";
-import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
+import {
+  IAddReaction,
+  IAllPostsFetch,
+  IFetchUserPostsRequest
+} from "@/types/request.types";
 
 export const postsApi = {
 
@@ -16,12 +20,21 @@ export const postsApi = {
     return axiosInstance.post('/posts/?mode=posts', credentials);
   },
 
-  addReaction: async (credentials:IAddReaction) => {
-    return axiosInstance.post(`/posts/${credentials.postId}/reactions` , {type : credentials.type});
+  addReaction: async (credentials: IAddReaction) => {
+    return axiosInstance.post(`/posts/${credentials.postId}/reactions`, {type: credentials.type});
   },
 
-  removeReaction: async (postId:string) => {
+  removeReaction: async (postId: string) => {
     return axiosInstance.delete(`/posts/${postId}/reactions`);
+  },
+
+  fetchUserPosts: async (request: IAllPostsFetch) => {
+    return axiosInstance.get(`/users/${request.userId}/posts`, {
+      params: {
+        page: request.page,
+        limit: request.limit
+      }
+    });
   },
 
 

@@ -12,8 +12,14 @@ router.route("/")
 router.route("/get-signature")
     .get(verifyToken, userController.getSignature)
 
+router.route("/upload-avatar")
+    .put(verifyToken , userController.updateAvatar)
+
 router.route("/follow")
     .post(verifyToken, userController.toggleFollowing)
+
+router.route("/:userId/posts/")
+    .get(userController.getPostsOfUsers)
 
 router.route("/:userId")
     .get(userController.getUserProfile)

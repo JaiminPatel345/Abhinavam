@@ -1,10 +1,5 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
-import {
-  ICreatePostForm,
-  ICreatePostSubmit,
-  IPost,
-  IPostReactionType
-} from "@/types/posts.types";
+import {ICreatePostForm, ICreatePostSubmit, IPost} from "@/types/posts.types";
 import {postsApi} from "@/api/postsApi";
 import {showNotification} from "@redux/slice/notificationSlice";
 import {setRedirectUrl} from "@redux/slice/userSlice";
@@ -12,6 +7,7 @@ import getSignature from "@/utils/userUtils/getSignature";
 import {makeFormDataForImageUpload} from "@/utils/comman";
 import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
 import {RootState} from "@/types/redux.types";
+import {getLikedPosts} from "@/utils/posts/getLikedPosts";
 
 export const createPostThunk = createAsyncThunk('/posts/', async ({
                                                                     credentials,
@@ -84,27 +80,18 @@ export const fetchPostsThunk = createAsyncThunk(
       getState
     }) => {
       try {
-        const response = await postsApi.fetchAllPosts(credentials);
-        const posts: IPost[] = response.data.data.posts;
-        const state = getState() as RootState;
-        const username = state.user.user?.username;
-
-        // Initialize empty object for liked posts
-        const likedPosts: Record<string, IPostReactionType> = {};
-
-        // Only process reactions if user is logged in
-        if (username) {
-          // Process each post to find user reactions
-          posts.forEach((post: IPost) => {
-            const reaction = post.reactions.find(
-                reaction => reaction.user.username === username
-            );
-
-            if (reaction) {
-              likedPosts[post._id] = reaction.type;
-            }
-          });
+        let response;
+        if (credentials.userId) {
+          response = await postsApi.fetchUserPosts(credentials);
+        } else {
+          response = await postsApi.fetchAllPosts(credentials);
         }
+        const posts = response.data.data.posts as IPost[];
+        if(posts.length === 0){
+          return rejectWithValue("No posts found");
+        }
+        const state = getState() as RootState;
+        const likedPosts = getLikedPosts(posts, state.user.user?.username || '');
 
         return {posts, likedPosts};
       } catch (error: any) {
