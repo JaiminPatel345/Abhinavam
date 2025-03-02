@@ -1,38 +1,39 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Animated,
   FlatList,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  StyleSheet
+  View
 } from "react-native";
-import { Avatar, Card, Divider, TextInput } from "react-native-paper";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types/redux.types";
-import { IComment } from "@/types/posts.types";
+import {Avatar, Card, Divider, TextInput} from "react-native-paper";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/types/redux.types";
+import {IComment} from "@/types/posts.types";
 import {
   ArrowDownRightIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   HeartIcon,
 } from "react-native-heroicons/outline";
-import { HeartIcon as HeartIconSolid } from "react-native-heroicons/solid";
+import {HeartIcon as HeartIconSolid} from "react-native-heroicons/solid";
 import useComments from '@/hooks/useComments';
-import { showNotification } from "@redux/slice/notificationSlice";
+import {showNotification} from "@redux/slice/notificationSlice";
 import CommentReplyInput from "@components/ui/CommenteplyInput";
 
 const LoadingIndicator = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color="#6200ee"/>
-  </View>
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#6200ee"/>
+    </View>
 );
 
 const EmptyComments = () => (
-  <View style={styles.emptyContainer}>
-    <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
-  </View>
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
+    </View>
 );
 
 interface CommentsProps {
@@ -41,9 +42,9 @@ interface CommentsProps {
 }
 
 const Comments = ({
-  postId,
-  onCommentsCountChange
-}: CommentsProps) => {
+                    postId,
+                    onCommentsCountChange
+                  }: CommentsProps) => {
   // State for user input
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
@@ -67,7 +68,13 @@ const Comments = ({
   const dispatch = useDispatch();
 
   // Custom hook for comment operations
-  const { addComment, fetchComments, fetchReplies, likeComment, unlikeComment } = useComments();
+  const {
+    addComment,
+    fetchComments,
+    fetchReplies,
+    likeComment,
+    unlikeComment
+  } = useComments();
 
   // Derived state
   const commentsArray = Object.values(commentsMap);
@@ -289,30 +296,33 @@ const Comments = ({
 
     if (loadingReplies[commentId]) {
       return (
-        <View style={styles.repliesLoading}>
-          <ActivityIndicator size="small" color="#6200ee"/>
-        </View>
+          <View style={styles.repliesLoading}>
+            <ActivityIndicator size="small" color="#6200ee"/>
+          </View>
       );
     }
 
     if (replies.length === 0) {
       return (
-        <View style={styles.repliesEmpty}>
-          <Text style={styles.repliesEmptyText}>No replies yet</Text>
-        </View>
+          <View style={styles.repliesEmpty}>
+            <Text style={styles.repliesEmptyText}>No replies yet</Text>
+          </View>
       );
     }
 
     return (
-      <View style={styles.repliesContainer}>
-        {replies.map(reply => renderCommentItem({
-          item: reply,
-          isReply: true
-        }))}
-      </View>
+        <View style={styles.repliesContainer}>
+          {replies.map(reply => renderCommentItem({
+            item: reply,
+            isReply: true
+          }))}
+        </View>
     );
   };
 
+
+
+  // -------------------
   const renderCommentItem = ({item, isReply = false}: {
     item: IComment,
     isReply?: boolean
@@ -330,145 +340,151 @@ const Comments = ({
     }
 
     return (
-      <Card key={item._id} style={[styles.commentCard, isReply && styles.replyCard]}>
-        <Card.Content style={styles.cardContent}>
-          {/* User info section */}
-          <View style={styles.userInfoContainer}>
-            <Avatar.Image
-              size={isReply ? 28 : 36}
-              source={{uri: item.author.avatar?.url || 'https://via.placeholder.com/40'}}
-              style={styles.avatar}
-            />
-            <View>
-              <Text style={styles.username}>
-                {item.author.username}
-              </Text>
-              <Text style={styles.timeText}>
-                {new Date(item.createdAt).toLocaleDateString()}
-                {item.isEdited && " (edited)"}
-              </Text>
-            </View>
-          </View>
+        <ScrollView>
+          <Card key={item._id}
+                style={[styles.commentCard, isReply && styles.replyCard]}>
+            <Card.Content style={styles.cardContent}>
+              {/* User info section */}
+              <View style={styles.userInfoContainer}>
+                <Avatar.Image
+                    size={isReply ? 28 : 36}
+                    source={{uri: item.author.avatar?.url || 'https://via.placeholder.com/40'}}
+                    style={styles.avatar}
+                />
+                <View>
+                  <Text style={styles.username}>
+                    {item.author.username}
+                  </Text>
+                  <Text style={styles.timeText}>
+                    {new Date(item.createdAt).toLocaleDateString()}
+                    {item.isEdited && " (edited)"}
+                  </Text>
+                </View>
+              </View>
 
-          {/* Comment content */}
-          <Text style={styles.commentText}>
-            {item.content}
-          </Text>
+              {/* Comment content */}
+              <Text style={styles.commentText}>
+                {item.content}
+              </Text>
 
-          {/* Actions row */}
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonsLeft}>
-              <TouchableOpacity
-                onPress={() => handleLikeComment(item._id)}
-                style={styles.likeButton}
-              >
-                <Animated.View
-                  style={{transform: [{scale: heartScale.current[item._id]}]}}>
-                  {isLiked ? (
-                    <HeartIconSolid size={18} color="#FF3B30"/>
-                  ) : (
-                    <HeartIcon size={18} color="#6B7280"/>
+              {/* Actions row */}
+              <View style={styles.actionsContainer}>
+                <View style={styles.actionButtonsLeft}>
+                  <TouchableOpacity
+                      onPress={() => handleLikeComment(item._id)}
+                      style={styles.likeButton}
+                  >
+                    <Animated.View
+                        style={{transform: [{scale: heartScale.current[item._id]}]}}>
+                      {isLiked ? (
+                          <HeartIconSolid size={18} color="#FF3B30"/>
+                      ) : (
+                          <HeartIcon size={18} color="#6B7280"/>
+                      )}
+                    </Animated.View>
+                    <Text
+                        style={[styles.likeCount, isLiked && styles.likedText]}>
+                      {likeCount}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Only show Reply button if this is not already a reply */}
+                  {!isReply && (
+                      <TouchableOpacity
+                          onPress={() => handleReplyPress(item._id)}
+                          style={styles.replyButton}
+                      >
+                        <ArrowDownRightIcon size={18} color="#6B7280"/>
+                        <Text style={styles.replyButtonText}>Reply</Text>
+                      </TouchableOpacity>
                   )}
-                </Animated.View>
-                <Text
-                  style={[styles.likeCount, isLiked && styles.likedText]}>
-                  {likeCount}
-                </Text>
-              </TouchableOpacity>
+                </View>
 
-              {/* Only show Reply button if this is not already a reply */}
-              {!isReply && (
-                <TouchableOpacity
-                  onPress={() => handleReplyPress(item._id)}
-                  style={styles.replyButton}
-                >
-                  <ArrowDownRightIcon size={18} color="#6B7280"/>
-                  <Text style={styles.replyButtonText}>Reply</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Show/hide replies button */}
-            {!isReply && (hasReplies || replyCount > 0) && (
-              <TouchableOpacity
-                onPress={() => toggleReplies(item._id)}
-                style={styles.toggleRepliesButton}
-              >
-                <Text style={styles.toggleRepliesText}>
-                  {isExpanded ? "Hide replies" : `Show replies (${replyCount})`}
-                </Text>
-                {isExpanded ? (
-                  <ChevronUpIcon size={16} color="#3B82F6"/>
-                ) : (
-                  <ChevronDownIcon size={16} color="#3B82F6"/>
+                {/* Show/hide replies button */}
+                {!isReply && (hasReplies || replyCount > 0) && (
+                    <TouchableOpacity
+                        onPress={() => toggleReplies(item._id)}
+                        style={styles.toggleRepliesButton}
+                    >
+                      <Text style={styles.toggleRepliesText}>
+                        {isExpanded ? "Hide replies" : `Show replies (${replyCount})`}
+                      </Text>
+                      {isExpanded ? (
+                          <ChevronUpIcon size={16} color="#3B82F6"/>
+                      ) : (
+                          <ChevronDownIcon size={16} color="#3B82F6"/>
+                      )}
+                    </TouchableOpacity>
                 )}
-              </TouchableOpacity>
-            )}
-          </View>
+              </View>
 
-          {/* Reply input */}
-          {isReplying && (
-            <CommentReplyInput
-              replyText={replyText}
-              setReplyText={setReplyText}
-              handleAddReply={handleAddReply}
-              commentId={item._id}
-              closeReply={() => setReplyingTo(null)}
-            />
-          )}
-        </Card.Content>
+              {/* Reply input */}
+              {isReplying && (
+                  <CommentReplyInput
+                      replyText={replyText}
+                      setReplyText={setReplyText}
+                      handleAddReply={handleAddReply}
+                      commentId={item._id}
+                      closeReply={() => setReplyingTo(null)}
+                  />
+              )}
+            </Card.Content>
 
-        {/* Replies container */}
-        {!isReply && renderReplies(item._id)}
-      </Card>
+            {/* Replies container */}
+            {!isReply && renderReplies(item._id)}
+          </Card>
+        </ScrollView>
+
     );
   };
 
   return (
-    <View style={styles.container}>
-      {/* Comment input */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          mode="outlined"
-          placeholder="Write a comment..."
-          value={commentText}
-          onChangeText={setCommentText}
-          style={styles.commentInput}
-          right={
-            <TextInput.Icon
-              icon="send"
-              onPress={handleAddComment}
-              disabled={!commentText.trim()}
-              color={commentText.trim() ? "#3B82F6" : "#9CA3AF"}
+      <View style={styles.container}>
+        {/* Comment input */}
+        <View style={styles.inputContainer}>
+          <TextInput
+              mode="outlined"
+              placeholder="Write a comment..."
+              value={commentText}
+              onChangeText={setCommentText}
+              style={styles.commentInput}
+              right={
+                <TextInput.Icon
+                    icon="send"
+                    onPress={handleAddComment}
+                    disabled={!commentText.trim()}
+                    color={commentText.trim() ? "#3B82F6" : "#9CA3AF"}
+                />
+              }
+          />
+        </View>
+
+        <Divider/>
+
+        {/* Comments list */}
+        {isLoading && rootComments.length === 0 ? (
+            <LoadingIndicator/>
+        ) : (
+            <FlatList
+                ref={flatListRef}
+                data={rootComments}
+                renderItem={renderCommentItem}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={styles.listContainer}
+                ListEmptyComponent={<EmptyComments/>}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                initialNumToRender={10}
+                maxToRenderPerBatch={5}
+                windowSize={5}
+                removeClippedSubviews={true}
+                ListHeaderComponent={refreshing ?
+                    <ActivityIndicator style={styles.refreshIndicator}
+                                       color="#6200ee"/> : null}
+                extraData={[likedComments, expandedComments, commentReplies]}
             />
-          }
-        />
+        )}
       </View>
-
-      <Divider />
-
-      {/* Comments list */}
-      {isLoading && rootComments.length === 0 ? (
-        <LoadingIndicator />
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={rootComments}
-          renderItem={renderCommentItem}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={<EmptyComments />}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-          initialNumToRender={10}
-          maxToRenderPerBatch={5}
-          windowSize={5}
-          removeClippedSubviews={true}
-          ListHeaderComponent={refreshing ? <ActivityIndicator style={styles.refreshIndicator} color="#6200ee" /> : null}
-          extraData={[likedComments, expandedComments, commentReplies]}
-        />
-      )}
-    </View>
   );
 };
 
@@ -499,7 +515,7 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
   },
   replyCard: {
     marginLeft: 0,

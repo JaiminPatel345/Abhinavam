@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
           const refreshToken = await TokenService.getRefreshToken();
           if (!refreshToken) {
             // Handle case when refresh token doesn't exist
-            await TokenService.removeTokens();
+            // await TokenService.removeTokens();
             // TODO: redirect to login here
             return Promise.reject(error);
           }

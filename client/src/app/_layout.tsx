@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text} from 'react-native';
-import {Stack} from "expo-router";
+import {Stack, Tabs} from "expo-router";
 import {SafeAreaProvider} from "react-native-safe-area-context";
 import {MD3LightTheme, PaperProvider} from "react-native-paper";
 import {Provider} from "react-redux";
@@ -36,10 +36,10 @@ const theme = {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    'SFProText-Regular': require('@/assets/fonts/SpaceMono-Regular.ttf'),
-    'SFProText-Medium': require('@/assets/fonts/Poppins-Medium.ttf'),
-    'SFProText-Bold': require('@/assets/fonts/Poppins-Bold.ttf'),
-    'Abhinavam-Logo': require('@/assets/fonts/Poppins-SemiBold.ttf'), // Custom font for logo
+    'SFProText-Regular': require('../../assets/fonts/SpaceMono-Regular.ttf'),
+    'SFProText-Medium': require('../../assets/fonts/Poppins-Medium.ttf'),
+    'SFProText-Bold': require('../../assets/fonts/Poppins-Bold.ttf'),
+    'Abhinavam-Logo': require('../../assets/fonts/Poppins-SemiBold.ttf'), // Custom font for logo
   });
 
   if (!fontsLoaded) {
@@ -75,6 +75,15 @@ export default function RootLayout() {
                       },
                     }}
                 >
+
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{
+                      headerShown: false,
+                    }}
+                  />
+
+
                   {/* Auth Stack */}
                   <Stack.Screen
                       name="auth"
@@ -105,6 +114,7 @@ export default function RootLayout() {
                       }}
                   />
                 </Stack>
+
               </AlertNotificationRoot>
             </PaperProvider>
           </SafeAreaProvider>
