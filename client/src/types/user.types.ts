@@ -1,5 +1,4 @@
 import type {Route} from "expo-router";
-import {IPost} from "@/types/posts.types";
 
 
 export interface IUser {
@@ -65,7 +64,7 @@ export interface SelectPickerProps {
   onSearchChange: (text: string) => void;
   selectedItems: string[];
   onItemSelect: (item: string) => void;
-  onSave: () => void;
+  onSave?: () => void;
 }
 
 export interface IRegisterUserRequest {

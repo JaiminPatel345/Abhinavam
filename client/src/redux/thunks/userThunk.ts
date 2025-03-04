@@ -1,5 +1,5 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
 import getSignature from "@/utils/userUtils/getSignature";
 import {userApi} from "@/api/userApi";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";

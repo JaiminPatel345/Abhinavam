@@ -1,4 +1,4 @@
-import {clearNotification} from "@redux/slice/notificationSlice";
+import {clearNotification} from "@/redux/slice/notificationSlice";
 import {useDispatch} from "react-redux";
 import {ThunkDispatch} from "redux-thunk";
 import {
@@ -7,7 +7,7 @@ import {
   fetchRepliesThunk,
   likeCommentThunk,
   unlikeCommentThunk
-} from "@redux/thunks/commentsThunk";
+} from "@/redux/thunks/commentsThunk";
 import {
   IAddCommentRequest,
   IFetchCommentsRequest,

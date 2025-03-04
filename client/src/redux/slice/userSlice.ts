@@ -5,12 +5,12 @@ import {
   logoutThunk,
   signupThunk,
   verifyOtpThunk
-} from "@redux/thunks/authThunk";
+} from "@/redux/thunks/authThunk";
 import {
   fetchMyData,
   updateUserProfileThunk,
   uploadUserProfileThunk
-} from "@redux/thunks/userThunk";
+} from "@/redux/thunks/userThunk";
 
 
 const initialState: AuthState = {

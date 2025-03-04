@@ -12,7 +12,6 @@ const SelectPicker: React.FC<SelectPickerProps> = ({
                                                      onSearchChange,
                                                      selectedItems,
                                                      onItemSelect,
-                                                     onSave
                                                    }) => {
   const filteredItems = items.filter((item: string) =>
       item.toLowerCase().includes(searchValue.toLowerCase())

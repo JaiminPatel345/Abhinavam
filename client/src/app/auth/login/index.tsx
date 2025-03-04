@@ -1,22 +1,32 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {Formik} from "formik";
 import validationLoginSchema from "@/app/auth/login/validationLoginSchema";
 import useAuth from "@/hooks/useAuth";
 import {Lock, Mail} from 'lucide-react-native';
-import {Link} from "expo-router";
+import {router} from "expo-router";
 import {RootState} from "@/types/redux.types";
+import {setCurrentRoute} from "@/redux/slice/navigationSlice";
 
 export default function LoginScreen() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const isLoading: boolean = useSelector((state: RootState) => state.user.isLoading);
   const {loginUser} = useAuth();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(setCurrentRoute('/auth/login'));
+  }, []);
 
 
   const handleLogin = (values: any) => {
     loginUser(values);
+  }
+
+  const handleNavigateToSignUp = () => {
+    router.replace('/auth/signup');
   }
 
   return (
@@ -147,11 +157,11 @@ export default function LoginScreen() {
                     <Text className="text-text-muted font-pregular">
                       Don't have an account?{' '}
                     </Text>
-                    <TouchableOpacity>
-                      <Link href={'/auth/signup'}
-                            className="text-primary font-psemibold">
+                    <TouchableOpacity onPress={handleNavigateToSignUp}>
+                      <Text
+                          className="text-primary underline font-psemibold">
                         Sign Up
-                      </Link>
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>

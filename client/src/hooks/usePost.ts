@@ -1,10 +1,10 @@
-import {clearNotification} from "@redux/slice/notificationSlice";
+import {clearNotification} from "@/redux/slice/notificationSlice";
 import {useDispatch} from "react-redux";
 import {
   addReactionThunk,
   createPostThunk,
   fetchPostsThunk, removeReactionThunk
-} from "@redux/thunks/postsThunk";
+} from "@/redux/thunks/postsThunk";
 import {ThunkDispatch} from "redux-thunk";
 import {ICreatePostForm} from "@/types/posts.types";
 import {IAddReaction, IAllPostsFetch} from "@/types/request.types";

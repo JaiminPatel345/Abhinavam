@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {createPostThunk, fetchPostsThunk} from "@redux/thunks/postsThunk";
+import {createPostThunk, fetchPostsThunk} from "@/redux/thunks/postsThunk";
 import {
   IOwner,
   IPost,

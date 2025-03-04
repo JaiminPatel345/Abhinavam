@@ -1,4 +1,4 @@
-import {MyButton} from "@components/ui/Button";
+import {MyButton} from "@/components/ui/Button";
 import {View} from "react-native";
 import useAuth from "@/hooks/useAuth";
 

@@ -1,8 +1,8 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import {ICreatePostForm, ICreatePostSubmit, IPost} from "@/types/posts.types";
 import {postsApi} from "@/api/postsApi";
-import {showNotification} from "@redux/slice/notificationSlice";
-import {setRedirectUrl} from "@redux/slice/userSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
+import {setRedirectUrl} from "@/redux/slice/userSlice";
 import getSignature from "@/utils/userUtils/getSignature";
 import {makeFormDataForImageUpload} from "@/utils/comman";
 import {IAddReaction, IAllPostsFetch} from "@/types/request.types";

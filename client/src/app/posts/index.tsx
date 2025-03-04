@@ -4,9 +4,9 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/types/redux.types";
 import {useEffect} from "react";
 import usePost from "@/hooks/usePost";
-import {clearAllPosts, updateToNextPage} from "@redux/slice/postSlice";
+import {clearAllPosts, updateToNextPage} from "@/redux/slice/postSlice";
 
-export default function Posts() {
+export default function  Posts() {
 
   const {
     posts,

@@ -5,7 +5,7 @@ import {
   fetchRepliesThunk,
   likeCommentThunk,
   unlikeCommentThunk
-} from "@redux/thunks/commentsThunk";
+} from "@/redux/thunks/commentsThunk";
 import {IComment} from "@/types/posts.types";
 
 interface ICommentSliceInitState {

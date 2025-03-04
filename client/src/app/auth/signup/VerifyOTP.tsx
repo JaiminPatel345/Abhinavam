@@ -13,10 +13,10 @@ import {ThunkDispatch} from "redux-thunk";
 import {
   clearNotification,
   showNotification
-} from "@redux/slice/notificationSlice";
+} from "@/redux/slice/notificationSlice";
 import {RootState} from "@/types/redux.types";
 import useAuth from "@/hooks/useAuth";
-import {setIsLoading} from "@redux/slice/userSlice";
+import {setIsLoading} from "@/redux/slice/userSlice";
 import {IUser} from "@/types/user.types";
 
 export default function VerifyOTPScreen() {

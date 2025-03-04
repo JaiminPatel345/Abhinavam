@@ -13,14 +13,14 @@ import * as Progress from 'react-native-progress';
 import INTERESTS from '@/utils/userUtils/interested';
 import PROFESSIONS from '@/utils/userUtils/professions';
 import SelectPicker from '@/app/auth/signup/SelectPicker';
-import {MyButton} from "@components/ui/Button";
+import {MyButton} from "@/components/ui/Button";
 import * as ImagePicker from 'expo-image-picker';
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/types/redux.types";
-import {setIsImageUploading} from "@redux/slice/userSlice";
+import {setIsImageUploading} from "@/redux/slice/userSlice";
 import useUser from "@/hooks/useUser";
 import {ICompleteProfilePayload} from "@/types/user.types";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
 import {Link} from "expo-router";
 
 export default function AdditionalDetailsScreen() {

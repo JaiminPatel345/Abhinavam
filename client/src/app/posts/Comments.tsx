@@ -21,8 +21,8 @@ import {
 } from "react-native-heroicons/outline";
 import {HeartIcon as HeartIconSolid} from "react-native-heroicons/solid";
 import useComments from '@/hooks/useComments';
-import {showNotification} from "@redux/slice/notificationSlice";
-import CommentReplyInput from "@components/ui/CommenteplyInput";
+import {showNotification} from "@/redux/slice/notificationSlice";
+import CommentReplyInput from "@/components/ui/CommenteplyInput";
 
 const LoadingIndicator = () => (
     <View style={styles.loadingContainer}>

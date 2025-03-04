@@ -126,10 +126,6 @@ const getUserProfile = async (req: TypedRequest<{}>, res: Response) => {
 
     const user = await User.findById(userId)
         .select('name username email about interests profession avatar isProfileComplete followers following posts ')
-        .populate({
-          path: 'posts',
-          options: {limit: 10}
-        })
         .lean();
 
     if (!user) {
@@ -288,7 +284,6 @@ const getPostsOfUsers = async (req: Request, res: Response) => {
       {$replaceRoot: {newRoot: "$userPosts"}}
     ]);
 
-    console.log(result);
 
     res.json(formatResponse(true, "done", {posts: result}));
 

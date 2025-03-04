@@ -7,9 +7,9 @@ import {Provider} from "react-redux";
 import {persistor, store} from "@/redux/store";
 import {AlertNotificationRoot} from "react-native-alert-notification";
 import GlobalNotificationListener
-  from "@components/alert/GlobalNotificationListener";
+  from "@/components/alert/GlobalNotificationListener";
 import {PersistGate} from 'redux-persist/integration/react'
-import {useUserDataManager} from "@/hooks/useUser";
+import TabBar from "@/components/TabBar";
 import {useRedirect} from "@/hooks/userRedirect";
 
 // Custom theme configuration
@@ -37,9 +37,6 @@ const theme = {
 };
 
 export default function RootLayout() {
-
-
-
 
   return (
       <Provider store={store}>
@@ -70,13 +67,6 @@ export default function RootLayout() {
                       },
                     }}
                 >
-
-                  <Stack.Screen
-                      name="(tabs)"
-                      options={{
-                        headerShown: false,
-                      }}
-                  />
 
 
                   {/* Auth Stack */}
@@ -109,6 +99,7 @@ export default function RootLayout() {
                       }}
                   />
                 </Stack>
+                <TabBar/>
 
               </AlertNotificationRoot>
             </PaperProvider>

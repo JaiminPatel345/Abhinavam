@@ -1,7 +1,7 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
 import {authAPI} from "@/api/authApis";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
 import {IApiResponse} from "@/types/response.types";
 import TokenService from "@/utils/tokens/TokenService";
 

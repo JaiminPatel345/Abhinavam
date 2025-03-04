@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Image,
   ScrollView,
@@ -17,12 +17,13 @@ import {
   TextInput,
   useTheme
 } from 'react-native-paper';
-import {MyButton} from "@components/ui/Button";
-import {useSelector} from "react-redux";
+import {MyButton} from "@/components/ui/Button";
+import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/types/redux.types";
 import usePost from "@/hooks/usePost";
 import * as ImagePicker from "expo-image-picker";
 import {ICreatePostForm, ILocation, IMediaItem} from "@/types/posts.types";
+import {setCurrentRoute} from "@/redux/slice/navigationSlice";
 
 
 const CreatePost: React.FC = () => {
@@ -44,6 +45,11 @@ const CreatePost: React.FC = () => {
 
   const {createPost} = usePost();
   const isLoading: boolean = useSelector((state: RootState) => state.posts.isLoading);
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(setCurrentRoute('/post/create'))
+  }, []);
 
   // Placeholder functions for API calls
   const handleSubmitPost = async () => {
@@ -290,7 +296,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mainContent: {
-    flex: 1,
+
     padding: 16,
   },
   descriptionCard: {
@@ -369,7 +375,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   locationCard: {
-    marginBottom: 16,
+    marginBottom: 2,
     elevation: 2,
   },
   dialogInput: {

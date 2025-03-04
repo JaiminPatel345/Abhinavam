@@ -1,10 +1,10 @@
 import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
-import {loginThunk, logoutThunk, signupThunk, verifyOtpThunk} from "@redux/thunks/authThunk";
+import {loginThunk, logoutThunk, signupThunk, verifyOtpThunk} from "@/redux/thunks/authThunk";
 import {useDispatch, useSelector} from 'react-redux';
 import {ThunkDispatch} from "redux-thunk";
-import {clearNotification, showNotification} from "@redux/slice/notificationSlice";
+import {clearNotification, showNotification} from "@/redux/slice/notificationSlice";
 import {useRouter} from "expo-router";
-import {setIsLoading} from "@redux/slice/userSlice";
+import {setIsLoading} from "@/redux/slice/userSlice";
 
 
 const useAuth = () => {

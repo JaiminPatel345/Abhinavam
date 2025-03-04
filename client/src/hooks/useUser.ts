@@ -1,11 +1,11 @@
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "@/types/redux.types";
-import {clearNotification} from "@redux/slice/notificationSlice";
+import {clearNotification} from "@/redux/slice/notificationSlice";
 import {
   fetchMyData,
   updateUserProfileThunk,
   uploadUserProfileThunk
-} from "@redux/thunks/userThunk";
+} from "@/redux/thunks/userThunk";
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
 import {useEffect} from "react";

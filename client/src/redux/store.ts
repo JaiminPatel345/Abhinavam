@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {persistReducer, persistStore} from 'redux-persist';
 import postReducer from "@/redux/slice/postSlice";
 import commentReducer from "@/redux/slice/commentSlice";
-
+import navigationReducer from "@/redux/slice/navigationSlice";
 
 const persistConfig = {
   key: 'root',
@@ -26,6 +26,7 @@ export const store = configureStore({
     notification: notificationReducer,
     posts: postReducer,
     comments: commentReducer,
+    navigation: navigationReducer,
 
   },
   middleware: (getDefaultMiddleware) =>

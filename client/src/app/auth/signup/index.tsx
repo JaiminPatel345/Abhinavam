@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -8,15 +8,19 @@ import {
 } from 'react-native';
 import {Button, TextInput} from 'react-native-paper';
 import {Lock, Mail, Shield, User, UserCircle} from 'lucide-react-native';
-import {Link} from "expo-router";
+import {router} from "expo-router";
 import {Formik} from 'formik';
 import validationSignupSchema from "@/app/auth/signup/validationSignupSchema";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {
+  clearNotification,
+  showNotification
+} from "@/redux/slice/notificationSlice";
 import {useDispatch, useSelector} from "react-redux";
 import useAuth from "@/hooks/useAuth";
-import {setIsLoading} from "@redux/slice/userSlice";
+import {setIsLoading} from "@/redux/slice/userSlice";
 import {SignupFormData} from "@/types/user.types";
 import {RootState} from "@/types/redux.types";
+import {setCurrentRoute} from "@/redux/slice/navigationSlice";
 
 
 export default function SignupScreen(): any {
@@ -30,6 +34,12 @@ export default function SignupScreen(): any {
   const dispatch = useDispatch();
   const {registerUser} = useAuth()
   const isLoading: boolean = useSelector((state: RootState) => state.user.isLoading);
+
+  useEffect(() => {
+    dispatch(clearNotification());
+    dispatch(setCurrentRoute('/auth/signup'));
+
+  }, []);
 
 
   const handelSubmit = async (values: SignupFormData) => {
@@ -54,10 +64,14 @@ export default function SignupScreen(): any {
 
   }
 
+  const handleNavigateToLogin = () => {
+    router.replace('/auth/login');
+  }
+
 
   return (
-      <SafeAreaView className="flex-1 bg-background">
-        <ScrollView>
+      <SafeAreaView className="flex-1 bg-background ">
+        <ScrollView className={'flex-1 mt-32 '}>
 
           <Formik
               initialValues={initialValues}
@@ -277,11 +291,11 @@ export default function SignupScreen(): any {
                       <Text className="text-text-muted font-pregular">
                         Already have an account?{' '}
                       </Text>
-                      <TouchableOpacity>
-                        <Link href={'/auth/login'}
-                              className="text-primary underline font-psemibold">
+                      <TouchableOpacity onPress={handleNavigateToLogin}>
+                        <Text
+                            className="text-primary underline font-psemibold">
                           Sign In
-                        </Link>
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>

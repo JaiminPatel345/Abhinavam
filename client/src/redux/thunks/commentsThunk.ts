@@ -1,6 +1,6 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
 import {commentAPI} from "@/api/commentsApi";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
 import {IComment} from "@/types/posts.types";
 import {
   IAddCommentRequest,

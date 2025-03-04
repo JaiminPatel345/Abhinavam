@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import ToastAlert from './ToastAlert';
-import {clearNotification} from "@redux/slice/notificationSlice";
+import {clearNotification} from "@/redux/slice/notificationSlice";
 
 const GlobalNotificationListener = () => {
   const {message, type, title} = useSelector((state: any) => state.notification);

@@ -16,13 +16,16 @@ import {LinearGradient} from "expo-linear-gradient";
 import usePost from "@/hooks/usePost";
 import {RootState} from "@/types/redux.types";
 import {useDispatch, useSelector} from "react-redux";
-import {likeAPost, unlikeAPost} from "@redux/slice/postSlice";
+import {likeAPost, unlikeAPost} from "@/redux/slice/postSlice";
 import Comments from "@/app/posts/Comments";
-import {showNotification} from "@redux/slice/notificationSlice";
+import {showNotification} from "@/redux/slice/notificationSlice";
 
 const {width} = Dimensions.get("window");
 
-const SinglePost = ({post , showConnect=false}: { post: IPost , showConnect?:boolean }) => {
+const SinglePost = ({post, showConnect = false}: {
+  post: IPost,
+  showConnect?: boolean
+}) => {
   // State for modal and image viewing
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -51,7 +54,7 @@ const SinglePost = ({post , showConnect=false}: { post: IPost , showConnect?:boo
 
   // Get user's current reaction if exists
 
-  const userReaction = likedPosts[post._id];
+  const userReaction: IPostReactionType = likedPosts[post._id];
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
 
@@ -177,16 +180,18 @@ const SinglePost = ({post , showConnect=false}: { post: IPost , showConnect?:boo
             )}
           </View>
           {showConnect && (
-              <TouchableOpacity onPress={() => console.log("Connect with user")}>
-            <LinearGradient
-                colors={['#8a2387', '#e94057', '#f27121']}
-                className="px-3 py-1 rounded-full"
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 0}}
-            >
-              <Text className="text-white font-medium text-xs">Connect</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <TouchableOpacity
+                  onPress={() => console.log("Connect with user")}>
+                <LinearGradient
+                    colors={['#8a2387', '#e94057', '#f27121']}
+                    className="px-3 py-1 rounded-full"
+                    start={{x: 0, y: 0}}
+                    end={{x: 1, y: 0}}
+                >
+                  <Text
+                      className="text-white font-medium text-xs">Connect</Text>
+                </LinearGradient>
+              </TouchableOpacity>
           )}
         </View>
 
