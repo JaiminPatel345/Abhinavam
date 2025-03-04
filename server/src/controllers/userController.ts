@@ -2,7 +2,6 @@ import {Request, Response} from "express";
 import {
   ICompleteProfilePayload,
   IToggleFollowingBody,
-  IUser,
   TypedRequest
 } from "../types/user.types.js";
 import {AppError, formatResponse} from "../types/custom.types.js";
@@ -122,10 +121,10 @@ const updateUserProfile = async (
 // Get user profile details
 const getUserProfile = async (req: TypedRequest<{}>, res: Response) => {
   try {
-    const userId = req.params.userId;
+    const username = req.params.username;
 
-    const user = await User.findById(userId)
-        .select('name username email about interests profession avatar isProfileComplete followers following posts ')
+    const user = await User.findOne({username})
+        .select('name username email about interests professions avatar isProfileComplete followers following posts ')
         .lean();
 
     if (!user) {
@@ -133,7 +132,7 @@ const getUserProfile = async (req: TypedRequest<{}>, res: Response) => {
     }
 
     res.status(200).json(
-        formatResponse(true, "Profile fetched successfully", {user})
+        formatResponse(true, "Profile fetched successfully", user)
     );
 
   } catch (error: any) {
@@ -147,14 +146,101 @@ const getUserProfile = async (req: TypedRequest<{}>, res: Response) => {
   }
 };
 
+// const toggleFollowing = async (
+//     req: TypedRequest<IToggleFollowingBody>,
+//     res: Response
+// ) => {
+//   try {
+//     const {userId: userToFollow} = req.body;
+//     const userId = req.userId;
+//
+//     if (!userToFollow) {
+//       throw new AppError("Invalid body", 400);
+//     }
+//
+//     if (userId === userToFollow) {
+//       throw new AppError("Can't follow yourself", 400);
+//     }
+//
+//     // Use aggregation to perform the follow/unfollow in a single atomic operation
+//     const result = await User.findOneAndUpdate(
+//         {
+//           _id: userId,
+//           following: {$elemMatch: {$eq: userToFollow}}
+//         },
+//         [
+//           {
+//             $set: {
+//               // If currently following, remove; if not following, add
+//               following: {
+//                 $cond: {
+//                   if: {$in: [userToFollow, "$following"]},
+//                   then: {$setDifference: ["$following", [userToFollow]]},
+//                   else: {$concatArrays: ["$following", [userToFollow]]}
+//                 }
+//               }
+//             }
+//           }
+//         ],
+//         {
+//           new: true,  // Return the updated document
+//           projection: {following: 1}  // Only return the following array
+//         }
+//     );
+//
+//     // Perform a similar update for the user being followed
+//     await User.findOneAndUpdate(
+//         {
+//           _id: userToFollow,
+//           followers: {$elemMatch: {$eq: userId}}
+//         },
+//         [
+//           {
+//             $set: {
+//               followers: {
+//                 $cond: {
+//                   if: {$in: [userId, "$followers"]},
+//                   then: {$setDifference: ["$followers", [userId]]},
+//                   else: {$concatArrays: ["$followers", [userId]]}
+//                 }
+//               }
+//             }
+//           }
+//         ]
+//     );
+//
+//     // Determine if the user was following or unfollowing
+//     const isFollowing = result?.following.includes(new mongoose.Types.ObjectId(userToFollow));
+//
+//     res.status(200).json(
+//         formatResponse(
+//             true,
+//             isFollowing ? "Followed successfully" : "Unfollowed successfully"
+//         )
+//     );
+//
+//   } catch (error: any) {
+//     console.error('Error in toggle following:', error);
+//     res.status(error.statusCode || 500).json(
+//         formatResponse(
+//             false,
+//             error.message || 'Error toggling follow status'
+//         )
+//     );
+//   }
+// };
+
 const toggleFollowing = async (
     req: TypedRequest<IToggleFollowingBody>,
     res: Response
 ) => {
   try {
-    const {userToFollow} = req.body;
+
+
+    const {userId: userToFollow} = req.body;
     const userId = req.userId;
 
+    // Validate input
     if (!userToFollow) {
       throw new AppError("Invalid body", 400);
     }
@@ -163,46 +249,70 @@ const toggleFollowing = async (
       throw new AppError("Can't follow yourself", 400);
     }
 
-    const [followUser, user] = await Promise.all([
-      User.findById(userToFollow),
-      User.findById(userId),
-    ]) as [IUser | null, IUser | null];
+    // Atomic update with transaction
+    const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        [
+          {
+            $set: {
+              following: {
+                $cond: {
+                  if: {$in: [userToFollow, "$following"]},
+                  then: {$setDifference: ["$following", [userToFollow]]},
+                  else: {$concatArrays: ["$following", [userToFollow]]}
+                }
+              }
+            }
+          }
+        ],
+        {
+          new: true,  // Return updated document
+          runValidators: true  // Run model validations
+        }
+    );
 
-    if (!followUser || !user) {
+    // Parallel update for followers
+    const updatedFollowedUser = await User.findByIdAndUpdate(
+        userToFollow,
+        [
+          {
+            $set: {
+              followers: {
+                $cond: {
+                  if: {$in: [userId, "$followers"]},
+                  then: {$setDifference: ["$followers", [userId]]},
+                  else: {$concatArrays: ["$followers", [userId]]}
+                }
+              }
+            }
+          }
+        ],
+        {
+          new: true,
+          runValidators: true
+        }
+    );
+
+    // Verify both users exist
+    if (!updatedUser || !updatedFollowedUser) {
       throw new AppError("User not found", 404);
     }
 
-    // Convert to string for comparison
-    const isFollowing = user.following.some(id =>
-        id.toString() === followUser._id.toString()
-    );
+    // Determine follow status
+    const isFollowing = updatedUser.following.includes(new mongoose.Types.ObjectId(userToFollow));
 
-    if (isFollowing) {
-      // Unfollow - use proper MongoDB operations
-      await User.findByIdAndUpdate(userId, {
-        $pull: {following: followUser._id}
-      });
-      await User.findByIdAndUpdate(userToFollow, {
-        $pull: {followers: user._id}
-      });
-    } else {
-      // Follow - use proper MongoDB operations
-      await User.findByIdAndUpdate(userId, {
-        $addToSet: {following: followUser._id}
-      });
-      await User.findByIdAndUpdate(userToFollow, {
-        $addToSet: {followers: user._id}
-      });
-    }
+    // Commit the transaction
 
     res.status(200).json(
         formatResponse(
             true,
-            isFollowing ? "Unfollowed successfully" : "Followed successfully"
+            isFollowing ? "Followed successfully" : "Unfollowed successfully"
         )
     );
 
   } catch (error: any) {
+    // Abort the transaction on error
+
     console.error('Error in toggle following:', error);
     res.status(error.statusCode || 500).json(
         formatResponse(
@@ -235,13 +345,13 @@ const getSignature = async (req: Request, res: Response) => {
 
 const getPostsOfUsers = async (req: Request, res: Response) => {
   try {
-    const {userId} = req.params;
+    const {username} = req.params;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
     const result = await User.aggregate([
       // Match specific user
-      {$match: {_id: new mongoose.Types.ObjectId(userId)}},
+      {$match: {username}},
 
       // First, capture the user info we need
       {
@@ -285,7 +395,10 @@ const getPostsOfUsers = async (req: Request, res: Response) => {
     ]);
 
 
-    res.json(formatResponse(true, "done", {posts: result}));
+    res.json(formatResponse(true, "done", {
+      posts: result,
+      hasMore: result.length === limit
+    }));
 
   } catch (error: any) {
     console.error('Error in getMyPosts:', error);
@@ -314,6 +427,109 @@ const updateAvatar = async (req: Request, res: Response) => {
   }
 }
 
+const getFollowing = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username;
+    if (!username) {
+      throw new AppError("User not found", 404);
+    }
+
+    const result = await User.aggregate([
+      // Match the user by username
+      {$match: {username}},
+
+      // Lookup to get following users
+      {
+        $lookup: {
+          from: 'users', // Make sure this matches your users collection name
+          localField: 'following',
+          foreignField: '_id',
+          as: 'followingUsers'
+        }
+      },
+
+      // Project to shape the output
+      {
+        $project: {
+          _id: 0,
+          following: {
+            $map: {
+              input: '$followingUsers',
+              as: 'user',
+              in: {
+                username: '$$user.username',
+                name: '$$user.name',
+                avatar: '$$user.avatar'
+              }
+            }
+          },
+          followingCount: {$size: '$following'}
+        }
+      }
+    ]);
+
+    // Return the result or an empty array if no user found
+    const followingData = result[0] || {following: [], followingCount: 0};
+
+    res.status(200).json(formatResponse(true, "Following list retrieved successfully", followingData));
+  } catch (error: any) {
+    console.error('Error in getFollowing:', error);
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Error getting following list"));
+  }
+};
+
+const getFollowers = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username;
+    if (!username) {
+      throw new AppError("User not found", 404);
+    }
+
+    const result = await User.aggregate([
+      // Match the user by username
+      {$match: {username}},
+
+      // Lookup to get followers
+      {
+        $lookup: {
+          from: 'users', // Make sure this matches your users collection name
+          localField: 'followers',
+          foreignField: '_id',
+          as: 'followerUsers'
+        }
+      },
+
+      // Project to shape the output
+      {
+        $project: {
+          _id: 0,
+          followers: {
+            $map: {
+              input: '$followerUsers',
+              as: 'user',
+              in: {
+                username: '$$user.username',
+                name: '$$user.name',
+                avatar: '$$user.avatar'
+              }
+            }
+          },
+          followersCount: {$size: '$followers'}
+        }
+      }
+    ]);
+
+    // Return the result or an empty array if no user found
+    const followersData = result[0] || {followers: [], followersCount: 0};
+
+    res.status(200).json(formatResponse(true, "Followers list retrieved successfully", followersData));
+  } catch (error: any) {
+    console.error('Error in getFollowers:', error);
+    res.status(error.statusCode || 500).json(formatResponse(false, error.message || "Error getting followers list"));
+  }
+};
+
+
 export default {
   updateUserProfile,
   getUserProfile,
@@ -322,5 +538,7 @@ export default {
   getMyProfile,
   getPostsOfUsers,
   updateAvatar,
+  getFollowers,
+  getFollowing,
 
 }

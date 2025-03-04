@@ -104,7 +104,7 @@ export type LogoutUserController = (
 ) => void;
 
 export interface IToggleFollowingBody {
-  userToFollow: string;
+  userId: string;
 }
 
 

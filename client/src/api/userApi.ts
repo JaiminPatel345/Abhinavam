@@ -28,6 +28,18 @@ export const userApi = {
 
   uploadImageToDB: async (avatar: {url:string , public_id:string}) => {
     return axiosInstance.put('/users/upload-avatar', {avatar});
+  },
+
+  getFollowers: async (username: string) => {
+    return axios.get(`/users/${username}/followers`);
+  },
+
+  getFollowing: async (username: string) => {
+    return axios.get(`/users/${username}/following`);
+  },
+
+  toggleFollow: async (userId: string) => {
+    return axiosInstance.post(`/users/toggle-follow` , {userId});
   }
 
 

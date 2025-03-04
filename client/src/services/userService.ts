@@ -2,23 +2,30 @@ import axiosInstance from "@/api/axiosClient";
 import {IUser} from "@/types/user.types";
 import {IPost} from "@/types/posts.types";
 
-export const fetchUserById = async (id: string): Promise<IUser> => {
-  const response = await axiosInstance.get(`/users/${id}`);
+export const fetchUserById = async (username: string): Promise<IUser> => {
+  const response = await axiosInstance.get(`/users/${username}`);
   return response.data.data;
 }
 
-export const fetchUserPosts = async (id: string, page: number): Promise<{
+export const fetchUserPosts = async (username: string, page: number): Promise<{
   posts: IPost[],
   hasMore: boolean
 }> => {
-  const response = await axiosInstance.get(`/users/${id}/posts`, {
+  const response = await axiosInstance.get(`/users/${username}/posts`, {
     params: {
       page,
       limit: 10,
     }
   });
-  return {
-    posts: response.data.data,
-    hasMore: response.data.hasMore
-  };
+  return response.data.data;
+}
+
+export const fetchUserFollowers = async (username: string): Promise<IUser[]> => {
+  const response = await axiosInstance.get(`/users/${username}/followers`);
+  return response.data.data;
+}
+
+export const fetchUserFollowing = async (username: string): Promise<IUser[]> => {
+  const response = await axiosInstance.get(`/users/${username}/following`);
+  return response.data.data;
 }

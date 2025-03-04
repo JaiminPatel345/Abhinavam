@@ -24,6 +24,7 @@ import usePost from "@/hooks/usePost";
 import * as ImagePicker from "expo-image-picker";
 import {ICreatePostForm, ILocation, IMediaItem} from "@/types/posts.types";
 import {setCurrentRoute} from "@/redux/slice/navigationSlice";
+import {useIsFocused} from "@react-navigation/core";
 
 
 const CreatePost: React.FC = () => {
@@ -46,10 +47,19 @@ const CreatePost: React.FC = () => {
   const {createPost} = usePost();
   const isLoading: boolean = useSelector((state: RootState) => state.posts.isLoading);
   const dispatch = useDispatch()
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     dispatch(setCurrentRoute('/post/create'))
   }, []);
+
+
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(setCurrentRoute('/'))
+    }
+
+  }, [isFocused]);
 
   // Placeholder functions for API calls
   const handleSubmitPost = async () => {

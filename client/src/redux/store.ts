@@ -6,6 +6,7 @@ import {persistReducer, persistStore} from 'redux-persist';
 import postReducer from "@/redux/slice/postSlice";
 import commentReducer from "@/redux/slice/commentSlice";
 import navigationReducer from "@/redux/slice/navigationSlice";
+import followReducer from "@/redux/slice/followSlice";
 
 const persistConfig = {
   key: 'root',
@@ -27,6 +28,7 @@ export const store = configureStore({
     posts: postReducer,
     comments: commentReducer,
     navigation: navigationReducer,
+    follow: followReducer,
 
   },
   middleware: (getDefaultMiddleware) =>

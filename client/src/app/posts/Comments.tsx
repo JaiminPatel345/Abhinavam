@@ -312,20 +312,24 @@ const Comments = ({
 
     return (
         <View style={styles.repliesContainer}>
-          {replies.map(reply => renderCommentItem({
-            item: reply,
-            isReply: true
-          }))}
+          {replies.map(reply => (
+              <React.Fragment key={reply._id}>
+                {renderCommentItem({
+                  item: reply,
+                  isReply: true,
+                })}
+              </React.Fragment>
+          ))}
         </View>
     );
   };
 
 
-
   // -------------------
-  const renderCommentItem = ({item, isReply = false}: {
+  const renderCommentItem = ({item, isReply = false, key}: {
     item: IComment,
-    isReply?: boolean
+    isReply?: boolean,
+    key?: string
   }) => {
     const isLiked = likedComments[item._id];
     const hasReplies = !!commentReplies[item._id]?.length || (item.replies && item.replies.length > 0);
@@ -469,7 +473,7 @@ const Comments = ({
                 ref={flatListRef}
                 data={rootComments}
                 renderItem={renderCommentItem}
-                keyExtractor={(item) => item._id}
+                keyExtractor={(item: IComment) => item._id}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={<EmptyComments/>}
                 refreshing={refreshing}

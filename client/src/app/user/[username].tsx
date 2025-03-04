@@ -7,7 +7,7 @@ import {IUser} from '@/types/user.types';
 import {IPost} from '@/types/posts.types';
 
 export default function UserProfileScreen() {
-  const {id} = useLocalSearchParams();
+  const {username} = useLocalSearchParams();
   const [user, setUser] = useState<IUser | null>(null);
   const [userPosts, setUserPosts] = useState<IPost[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,19 +16,20 @@ export default function UserProfileScreen() {
 
   useEffect(() => {
     loadUserData();
-  }, [id]);
+  }, [username]);
 
   const loadUserData = async () => {
-    if (!id) return;
+    if (!username) return;
 
     setIsLoading(true);
     try {
       // Fetch user data
-      const userData = await fetchUserById(id as string);
+      const userData = await fetchUserById(username as string);
       setUser(userData);
 
       // Fetch initial posts
-      const postsData = await fetchUserPosts(id as string, 1);
+      const postsData = await fetchUserPosts(username as string, 1);
+
       setUserPosts(postsData.posts);
       setHasMore(postsData.hasMore);
       setPage(1);
@@ -44,11 +45,12 @@ export default function UserProfileScreen() {
   };
 
   const fetchMorePosts = async () => {
-    if (!hasMore || isLoading || !id) return;
+    if (!hasMore || isLoading || !username) return;
 
     try {
       const nextPage = page + 1;
-      const postsData = await fetchUserPosts(id as string, nextPage);
+      const postsData = await fetchUserPosts(username as string, nextPage);
+
 
       if (postsData.posts.length > 0) {
         setUserPosts(prev => prev ? [...prev, ...postsData.posts] : postsData.posts);
@@ -70,7 +72,7 @@ export default function UserProfileScreen() {
     }
   };
 
-  if (!id) {
+  if (!username) {
     return (
         <View style={styles.container}>
           <Text style={styles.errorText}>User ID not provided</Text>
