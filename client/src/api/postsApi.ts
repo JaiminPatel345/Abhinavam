@@ -4,7 +4,7 @@ import axios from "axios";
 import {
   IAddReaction,
   IAllPostsFetch,
-  IFetchUserPostsRequest
+  IFetchPostsRequest
 } from "@/types/request.types";
 
 export const postsApi = {
@@ -28,8 +28,8 @@ export const postsApi = {
     return axiosInstance.delete(`/posts/${postId}/reactions`);
   },
 
-  fetchUserPosts: async (request: IAllPostsFetch) => {
-    return axiosInstance.get(`/users/${request.userId}/posts`, {
+  fetchUserPosts: async (request: IFetchPostsRequest) => {
+    return axiosInstance.get(`/users/${request.username}/posts`, {
       params: {
         page: request.page,
         limit: request.limit

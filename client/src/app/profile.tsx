@@ -66,7 +66,7 @@ export default function ProfileScreen() {
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
 
   useEffect(() => {
-    if(!user){
+    if (!user) {
       dispatch(setCurrentRoute('/auth/login'))
       dispatch(showNotification({
         message: 'Please login to view your profile',
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
   // Fetch posts on mount or when user changes
   useEffect(() => {
     if (user) {
-      fetchPosts({userId: user._id, page, limit});
+      fetchPosts({username: user.username, page, limit});
     }
   }, [user, page]);
 
@@ -99,8 +99,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (user && allPosts && Object.keys(allPosts).length > 0) {
       const filteredPosts = user.posts
-          .map((postId:string) => allPosts[postId])
-          .filter((post:IPost) => post !== undefined);
+          .map((postId: string) => allPosts[postId])
+          .filter((post: IPost) => post !== undefined);
       setUserPosts(filteredPosts);
     }
   }, [allPosts, user]);
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
     dispatch(clearAllPosts());
     setPage(1);
     if (user) {
-      fetchPosts({userId: user._id, page: 1, limit});
+      fetchPosts({username: user.username, page: 1, limit});
     }
   };
 
@@ -119,7 +119,7 @@ export default function ProfileScreen() {
       const nextPage = page + 1;
       setPage(nextPage);
       dispatch(updateToNextPage());
-      fetchPosts({userId: user._id, page: nextPage, limit});
+      fetchPosts({username: user.username, page: nextPage, limit});
     }
   };
 

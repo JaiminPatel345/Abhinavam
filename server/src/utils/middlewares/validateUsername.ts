@@ -8,6 +8,8 @@ export const validateUsername = (req: Request, res: Response, next: NextFunction
     if (!username) {
         return next(new AppError('Username is required', 400));
     }
+    //TODO: remove in production
+    console.log("Username :", username);
 
     // Optional: Add more specific validation rules
     const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;

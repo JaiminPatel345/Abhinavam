@@ -249,7 +249,6 @@ const toggleFollowing = async (
       throw new AppError("Can't follow yourself", 400);
     }
 
-    // Atomic update with transaction
     const updatedUser = await User.findByIdAndUpdate(
         userId,
         [
@@ -267,9 +266,10 @@ const toggleFollowing = async (
         ],
         {
           new: true,  // Return updated document
-          runValidators: true  // Run model validations
+          runValidators: true  // Run model validations,
+
         }
-    );
+    ).select("username avatar name");
 
     // Parallel update for followers
     const updatedFollowedUser = await User.findByIdAndUpdate(
@@ -306,7 +306,8 @@ const toggleFollowing = async (
     res.status(200).json(
         formatResponse(
             true,
-            isFollowing ? "Followed successfully" : "Unfollowed successfully"
+            isFollowing ? "Followed successfully" : "Unfollowed successfully",
+            {isFollowing}
         )
     );
 

@@ -9,7 +9,6 @@ import {
 import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
 import {useEffect} from "react";
-import {IFetchUserPostsRequest} from "@/types/request.types";
 
 const useUser = () => {
   const dispatch = useDispatch<AppDispatch>();

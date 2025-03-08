@@ -5,7 +5,7 @@ import {showNotification} from "@/redux/slice/notificationSlice";
 import {setRedirectUrl} from "@/redux/slice/userSlice";
 import getSignature from "@/utils/userUtils/getSignature";
 import {makeFormDataForImageUpload} from "@/utils/comman";
-import {IAddReaction, IAllPostsFetch} from "@/types/request.types";
+import {IAddReaction, IFetchPostsRequest} from "@/types/request.types";
 import {RootState} from "@/types/redux.types";
 import {getLikedPosts} from "@/utils/posts/getLikedPosts";
 
@@ -74,20 +74,20 @@ export const createPostThunk = createAsyncThunk('/posts/', async ({
 
 export const fetchPostsThunk = createAsyncThunk(
     '/posts/fetchAllPost',
-    async (credentials: IAllPostsFetch, {
+    async (credentials: IFetchPostsRequest, {
       dispatch,
       rejectWithValue,
       getState
     }) => {
       try {
         let response;
-        if (credentials.userId) {
+        if (credentials.username) {
           response = await postsApi.fetchUserPosts(credentials);
         } else {
           response = await postsApi.fetchAllPosts(credentials);
         }
         const posts = response.data.data.posts as IPost[];
-        if(posts.length === 0){
+        if (posts.length === 0) {
           return rejectWithValue("No posts found");
         }
         const state = getState() as RootState;

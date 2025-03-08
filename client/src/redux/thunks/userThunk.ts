@@ -6,10 +6,6 @@ import {ImagePickerResult} from "expo-image-picker/build/ImagePicker.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
 import {ISignatureResponse} from "@/types/response.types";
 import {makeFormDataForImageUpload} from "@/utils/comman";
-import {IFetchUserPostsRequest} from "@/types/request.types";
-import {IPost} from "@/types/posts.types";
-import {RootState} from "@/types/redux.types";
-import {getLikedPosts} from "@/utils/posts/getLikedPosts";
 
 interface CloudinaryUploadResponse {
   secure_url: string;
@@ -48,7 +44,10 @@ export const uploadUserProfileThunk = createAsyncThunk(
           message: 'Profile image updated successfully',
         }));
 
-        await userApi.uploadImageToDB({url:result.secure_url , public_id:result.public_id});
+        await userApi.uploadImageToDB({
+          url: result.secure_url,
+          public_id: result.public_id
+        });
 
         return result;
 

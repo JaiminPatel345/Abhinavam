@@ -1,8 +1,10 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {
-  fetchFollowersThunk, fetchFollowingThunk, toggleFollowUserThunk
+  fetchFollowersThunk,
+  fetchFollowingThunk,
+  toggleFollowUserThunk
 } from '../thunks/followThunk';
-import {FollowState} from "@/types/follow.types";
+import {FollowState, UserRelation} from "@/types/follow.types";
 
 // Initial State
 const initialState: FollowState = {
@@ -12,7 +14,6 @@ const initialState: FollowState = {
   isLoadingFollowers: false,
   followError: null
 };
-
 
 
 // Slice
@@ -54,7 +55,10 @@ const followSlice = createSlice({
     });
 
     // Toggle Follow
-    builder.addCase(toggleFollowUserThunk.fulfilled, (state, action) => {
+    builder.addCase(toggleFollowUserThunk.fulfilled, (state, action: PayloadAction<{
+      user: UserRelation,
+      isFollowing: boolean
+    }>) => {
       const {user, isFollowing} = action.payload;
 
       if (isFollowing) {

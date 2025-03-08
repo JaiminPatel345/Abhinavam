@@ -170,7 +170,7 @@ const SinglePost = ({post, showConnect = false}: {
 
 
   return (
-      <View className={'rounded-xl shadow-sm mx-3 my-5 overflow-hidden'}>
+      <View className={'rounded-xl shadow-sm mx-3  overflow-hidden'}>
 
         <View
             className="bg-background ">

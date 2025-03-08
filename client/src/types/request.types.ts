@@ -30,8 +30,8 @@ export interface IFetchReplyRequest {
   limit: number;
 }
 
-export interface IFetchUserPostsRequest {
-  userId: string;
+export interface IFetchPostsRequest {
+  username?: string;
   page: number;
   limit: number;
 }
