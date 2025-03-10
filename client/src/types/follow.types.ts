@@ -14,5 +14,6 @@ export interface FollowState {
   isLoadingFollowing: boolean;
   isLoadingFollowers: boolean;
   followError: string | null;
+  userFollowers: Record<string, boolean>
 }
 

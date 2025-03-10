@@ -1,5 +1,5 @@
 import {createSlice} from "@reduxjs/toolkit";
-import {AuthState} from "@/types/user.types";
+import {AuthState, UserRelation} from "@/types/user.types";
 import {
   loginThunk,
   logoutThunk,
@@ -20,6 +20,8 @@ const initialState: AuthState = {
   redirectUrl: null,
   isImageUploading: false,
   lastFetched: 0,
+  userFollowers: {},
+
 
 }
 
@@ -39,9 +41,34 @@ export const userSlice = createSlice({
     },
     setRedirectUrl: (state, action) => {
       state.redirectUrl = action.payload;
-    }
+    },
+    updateFollowers: (state, action: { payload: UserRelation[] }) => {
+      if (!state.user) return;
 
+      action.payload.map((user) => {
+        if (state.user!.following.includes(user._id)) {
+          state.userFollowers[user._id] = true;
+        }
+      })
+    },
+    clearUserFollowers: (state) => {
+      state.userFollowers = {};
+    },
+    toggleUserFollow: (state, action: { payload: string }) => {
+      if (!state.user) return;
+
+      const userId = action.payload;
+      if (state.userFollowers[userId]) {
+        state.user!.following = state.user!.following.filter((id) => id !== userId);
+        state.userFollowers[userId] = false;
+      } else {
+        state.user!.following.push(userId);
+        state.userFollowers[userId] = true;
+      }
+    }
   },
+
+
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
     builder
@@ -49,6 +76,7 @@ export const userSlice = createSlice({
           state.isLoading = true;
         })
         .addCase(loginThunk.fulfilled, (state, action) => {
+          console.log("Action uer ", action.payload.user)
           state.user = action.payload.user;
           state.isLoggedIn = !!action.payload.tokens.accessToken;
           state.isLoading = false;
@@ -166,6 +194,10 @@ export const {
   setRedirectUrl,
   setIsLoading,
   setIsLoggedIn,
-  setIsImageUploading
+  setIsImageUploading,
+  updateFollowers,
+  toggleUserFollow,
+  clearUserFollowers,
+
 } = userSlice.actions;
 export default userSlice.reducer;

@@ -234,10 +234,11 @@ const toggleFollowing = async (
     req: TypedRequest<IToggleFollowingBody>,
     res: Response
 ) => {
+
   try {
 
-
-    const {userId: userToFollow} = req.body;
+    const {userId: tempId} = req.body;
+    const userToFollow = new mongoose.Types.ObjectId(tempId);
     const userId = req.userId;
 
     // Validate input
@@ -245,74 +246,60 @@ const toggleFollowing = async (
       throw new AppError("Invalid body", 400);
     }
 
-    if (userId === userToFollow) {
+    if (userId === tempId) {
       throw new AppError("Can't follow yourself", 400);
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        [
-          {
-            $set: {
-              following: {
-                $cond: {
-                  if: {$in: [userToFollow, "$following"]},
-                  then: {$setDifference: ["$following", [userToFollow]]},
-                  else: {$concatArrays: ["$following", [userToFollow]]}
-                }
-              }
-            }
-          }
-        ],
-        {
-          new: true,  // Return updated document
-          runValidators: true  // Run model validations,
+    // Check if already following
+    const user = await User.findById(userId).select("following");
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
 
-        }
-    ).select("username avatar name");
+    const isCurrentlyFollowing = user.following.includes(userToFollow);
 
-    // Parallel update for followers
-    const updatedFollowedUser = await User.findByIdAndUpdate(
-        userToFollow,
-        [
-          {
-            $set: {
-              followers: {
-                $cond: {
-                  if: {$in: [userId, "$followers"]},
-                  then: {$setDifference: ["$followers", [userId]]},
-                  else: {$concatArrays: ["$followers", [userId]]}
-                }
-              }
-            }
-          }
-        ],
-        {
-          new: true,
-          runValidators: true
-        }
-    );
+    // Update operation based on current status
+    const updateOperation = isCurrentlyFollowing
+        ? {$pull: {following: userToFollow}}
+        : {$addToSet: {following: userToFollow}};
+
+    const followedUserOperation = isCurrentlyFollowing
+        ? {$pull: {followers: userId}}
+        : {$addToSet: {followers: userId}};
+
+    // Execute updates in parallel with Promise.all
+    const [updatedUser, updatedFollowedUser] = await Promise.all([
+      User.findByIdAndUpdate(
+          userId,
+          updateOperation,
+          {new: true, runValidators: true}
+      ).select("username avatar name following followers"),
+
+      User.findByIdAndUpdate(
+          userToFollow,
+          followedUserOperation,
+          {new: true, runValidators: true}
+      )
+    ]);
 
     // Verify both users exist
     if (!updatedUser || !updatedFollowedUser) {
       throw new AppError("User not found", 404);
     }
 
-    // Determine follow status
-    const isFollowing = updatedUser.following.includes(new mongoose.Types.ObjectId(userToFollow));
 
-    // Commit the transaction
+    // Determine follow status (now simplified)
+    const isFollowing = !isCurrentlyFollowing;
 
     res.status(200).json(
         formatResponse(
             true,
             isFollowing ? "Followed successfully" : "Unfollowed successfully",
-            {isFollowing}
+            {isFollowing , user:updatedFollowedUser}
         )
     );
 
   } catch (error: any) {
-    // Abort the transaction on error
 
     console.error('Error in toggle following:', error);
     res.status(error.statusCode || 500).json(
@@ -323,6 +310,7 @@ const toggleFollowing = async (
     );
   }
 };
+
 
 const getSignature = async (req: Request, res: Response) => {
   try {
@@ -343,6 +331,7 @@ const getSignature = async (req: Request, res: Response) => {
 
   }
 }
+
 
 const getPostsOfUsers = async (req: Request, res: Response) => {
   try {
@@ -409,6 +398,7 @@ const getPostsOfUsers = async (req: Request, res: Response) => {
   }
 }
 
+
 const updateAvatar = async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
@@ -428,49 +418,24 @@ const updateAvatar = async (req: Request, res: Response) => {
   }
 }
 
+
 const getFollowing = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
-    if (!username) {
+
+    const user = await User.findOne({username})
+        .populate('following', 'username name avatar')
+        .lean();
+
+
+    if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    const result = await User.aggregate([
-      // Match the user by username
-      {$match: {username}},
-
-      // Lookup to get following users
-      {
-        $lookup: {
-          from: 'users', // Make sure this matches your users collection name
-          localField: 'following',
-          foreignField: '_id',
-          as: 'followingUsers'
-        }
-      },
-
-      // Project to shape the output
-      {
-        $project: {
-          _id: 0,
-          following: {
-            $map: {
-              input: '$followingUsers',
-              as: 'user',
-              in: {
-                username: '$$user.username',
-                name: '$$user.name',
-                avatar: '$$user.avatar'
-              }
-            }
-          },
-          followingCount: {$size: '$following'}
-        }
-      }
-    ]);
-
-    // Return the result or an empty array if no user found
-    const followingData = result[0] || {following: [], followingCount: 0};
+    const followingData = {
+      following: user.following || [],
+      followingCount: user.following ? user.following.length : 0
+    };
 
     res.status(200).json(formatResponse(true, "Following list retrieved successfully", followingData));
   } catch (error: any) {
@@ -479,49 +444,25 @@ const getFollowing = async (req: Request, res: Response) => {
   }
 };
 
+
 const getFollowers = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
-    if (!username) {
+
+    const user = await User.findOne({username})
+        .populate('followers', 'username name avatar')
+        .lean();
+
+
+    if (!user) {
       throw new AppError("User not found", 404);
     }
 
-    const result = await User.aggregate([
-      // Match the user by username
-      {$match: {username}},
+    const followersData = {
+      followers: user.followers || [],
+      followersCount: user.followers ? user.followers.length : 0
+    };
 
-      // Lookup to get followers
-      {
-        $lookup: {
-          from: 'users', // Make sure this matches your users collection name
-          localField: 'followers',
-          foreignField: '_id',
-          as: 'followerUsers'
-        }
-      },
-
-      // Project to shape the output
-      {
-        $project: {
-          _id: 0,
-          followers: {
-            $map: {
-              input: '$followerUsers',
-              as: 'user',
-              in: {
-                username: '$$user.username',
-                name: '$$user.name',
-                avatar: '$$user.avatar'
-              }
-            }
-          },
-          followersCount: {$size: '$followers'}
-        }
-      }
-    ]);
-
-    // Return the result or an empty array if no user found
-    const followersData = result[0] || {followers: [], followersCount: 0};
 
     res.status(200).json(formatResponse(true, "Followers list retrieved successfully", followersData));
   } catch (error: any) {

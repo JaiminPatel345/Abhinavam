@@ -1,14 +1,7 @@
-import React from 'react';
-import {
-  FlatList,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import React, {useState} from 'react';
+import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {Divider} from "react-native-paper";
-import {Camera, Edit2,} from 'lucide-react-native';
+import {Camera, Edit2} from 'lucide-react-native';
 import * as Progress from 'react-native-progress';
 import SinglePost from '@/app/posts/SinglePost';
 import {IPost} from "@/types/posts.types";
@@ -16,7 +9,11 @@ import {IUser} from "@/types/user.types";
 import {router} from "expo-router";
 import {useDispatch, useSelector} from "react-redux";
 import {AppDispatch, RootState} from "@/types/redux.types";
-import {toggleFollowUserThunk} from "@/redux/thunks/followThunk";
+import {ItemSeparator} from "@/components/PostsHelpers";
+import {showNotification} from "@/redux/slice/notificationSlice";
+import PullToRefreshList from "@/components/PullToRefreshList";
+import {toggleUserFollow} from "@/redux/slice/userSlice";
+import {toggleFollow} from "@/services/followServices";
 
 interface ProfileComponentProps {
   user: IUser;
@@ -49,25 +46,55 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
                                                              onEditInterests,
                                                              onEditProfessions,
                                                            }) => {
+  const [isFollow, setIsFollow] = React.useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [isFollow , setIsFollow] = React.useState(false);
-  const loggedInUser = useSelector((state: RootState) => state.user.user);
+  const loggedInUSer = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
+
   const handleShowFollowers = () => {
+    if (!loggedInUSer) {
+      dispatch(showNotification({
+        title: 'Please login to view followers',
+        type: 'DANGER',
+      }));
+      router.push('/auth/login')
+      return;
+    }
     router.push(`/user/followers/${user.username}`);
   };
 
   const handleShowFollowing = () => {
+    if (!loggedInUSer) {
+      dispatch(showNotification({
+        title: 'Please login to view following',
+        type: 'DANGER',
+      }));
+      router.push('/auth/login')
+      return;
+    }
     router.push(`/user/following/${user.username}`);
   };
 
   const handleFollowUser = () => {
-    // Implement follow user functionality
-    dispatch(toggleFollowUserThunk(user._id));
+    if (!loggedInUSer) {
+      dispatch(showNotification({
+        title: 'Please login to follow',
+        type: 'DANGER',
+      }));
+      router.push('/auth/login')
+      return;
+    }
+    toggleFollow(user._id);
+    dispatch(toggleUserFollow(user._id));
     setIsFollow(!isFollow);
-
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await onRefresh();
+    setIsRefreshing(false);
+  };
 
   // Profile Info Section
   const renderProfileInfo = () => (
@@ -99,8 +126,9 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
             <View className={'flex-1 justify-between flex-row'}>
               <Text style={styles.userName}>{user?.username}</Text>
               {!isOwnProfile && (
-                  <TouchableOpacity className={`${isFollow ? 'bg-red-400' : 'bg-cyan-200'} rounded-md`}
-                                    onPress={handleFollowUser}>
+                  <TouchableOpacity
+                      className={`${isFollow ? 'bg-red-400' : 'bg-cyan-200'} rounded-md`}
+                      onPress={handleFollowUser}>
                     <Text style={{color: '#5C7AEA'}}
                           className={'p-2 rounded'}>{isFollow ? 'Unfollow' : 'Follow'}</Text>
                   </TouchableOpacity>
@@ -136,7 +164,7 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
               {/*Following*/}
               <TouchableOpacity style={styles.statItem}
                                 onPress={handleShowFollowing}>
-                <Text style={styles.statValue}>{user?.following.length}</Text>
+                <Text style={styles.statValue}>{user?.following?.length}</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
 
@@ -240,28 +268,27 @@ const ProfileComponent: React.FC<ProfileComponentProps> = ({
   );
 
   return (
-      <FlatList
+      <PullToRefreshList
           data={userPosts || []}
           renderItem={renderPostItem}
           keyExtractor={(item) => item._id}
           ListHeaderComponent={renderProfileInfo}
           ListEmptyComponent={
-            isLoading ? (
-                <View style={styles.loadingPosts}>
-                  <Progress.Circle size={40} indeterminate={true}
-                                   color="#4C585B"/>
-                </View>
-            ) : (
-                <View style={styles.emptyPosts}>
-                  <Text style={styles.emptyPostsText}>No posts yet</Text>
-                </View>
-            )
+            <View style={styles.emptyPosts}>
+              <Text style={styles.emptyPostsText}>No posts yet</Text>
+            </View>
           }
-          onRefresh={onRefresh}
-          refreshing={isLoading}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+          isLoading={isLoading}
           onEndReached={fetchNewPosts}
           onEndReachedThreshold={0.5}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          windowSize={12}
+          maxToRenderPerBatch={5}
+          initialNumToRender={10}
+          ItemSeparatorComponent={ItemSeparator}
       />
   );
 };
@@ -420,7 +447,7 @@ const styles = StyleSheet.create({
   },
   emptyPosts: {
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 40,
     backgroundColor: '#FFFFFF',
   },
   emptyPostsText: {

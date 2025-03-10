@@ -19,13 +19,3 @@ export const fetchUserPosts = async (username: string, page: number): Promise<{
   });
   return response.data.data;
 }
-
-export const fetchUserFollowers = async (username: string): Promise<IUser[]> => {
-  const response = await axiosInstance.get(`/users/${username}/followers`);
-  return response.data.data;
-}
-
-export const fetchUserFollowing = async (username: string): Promise<IUser[]> => {
-  const response = await axiosInstance.get(`/users/${username}/following`);
-  return response.data.data;
-}

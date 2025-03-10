@@ -1,5 +1,10 @@
 import {createAsyncThunk} from "@reduxjs/toolkit";
-import {ILoginCredentials, IRegisterUserRequest, IVerifyOtp} from "@/types/user.types";
+import {
+  ILoginCredentials,
+  IRegisterUserRequest,
+  IUser,
+  IVerifyOtp
+} from "@/types/user.types";
 import {authAPI} from "@/api/authApis";
 import {showNotification} from "@/redux/slice/notificationSlice";
 import {IApiResponse} from "@/types/response.types";
@@ -21,6 +26,8 @@ export const loginThunk = createAsyncThunk(
               title: 'Login Successful',
             })
         )
+        console.log("response : ", response);
+        console.log("following : ", data.data?.user.following)
         await TokenService.storeTokens(data.data.tokens.accessToken, data.data.tokens.refreshToken);
         return data.data;
 

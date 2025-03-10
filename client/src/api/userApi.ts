@@ -31,16 +31,15 @@ export const userApi = {
   },
 
   getFollowers: async (username: string) => {
-    return axios.get(`/users/${username}/followers`);
+    return axiosInstance.get(`/users/${username}/followers`);
   },
 
   getFollowing: async (username: string) => {
-    return axios.get(`/users/${username}/following`);
+    return axiosInstance.get(`/users/${username}/following`);
   },
 
   toggleFollow: async (userId: string) => {
     return axiosInstance.post(`/users/toggle-follow` , {userId});
   }
-
 
 }

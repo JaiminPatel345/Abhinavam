@@ -15,7 +15,7 @@ export interface IUser {
   about?: string;
   interests?: string[];
   professions?: string[];
-  followers: string[]; //user Id array  , not populated
+  followers: string[]; //user Id
   following: string[]; //user id
   posts: string[]; // post id array
 }
@@ -88,5 +88,16 @@ export interface AuthState {
   redirectUrl: Route | null;
   isImageUploading: boolean;
   lastFetched: number;
+  userFollowers: Record<string, boolean>,
 
+}
+
+export interface UserRelation {
+  _id: string;
+  username: string;
+  name: string;
+  avatar?: {
+    url: string,
+    public_id: string
+  };
 }

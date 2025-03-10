@@ -10,7 +10,6 @@ import GlobalNotificationListener
   from "@/components/alert/GlobalNotificationListener";
 import {PersistGate} from 'redux-persist/integration/react'
 import TabBar from "@/components/TabBar";
-import {useRedirect} from "@/hooks/userRedirect";
 
 // Custom theme configuration
 const theme = {
@@ -50,22 +49,18 @@ export default function RootLayout() {
               <AlertNotificationRoot>
                 <Stack
                     screenOptions={{
+                      // Default header style for all screens
                       headerStyle: {
                         backgroundColor: '#F4EDD3',
                       },
-                      headerShadowVisible: false,
-                      headerTintColor: '#4C585B',
+                      headerTintColor: '#000000',
                       headerTitleStyle: {
-                        fontFamily: 'Abhinavam-Logo',
-                        fontSize: 24,
-                        fontWeight: '400',
+                        fontWeight: 'bold',
                       },
-                      headerTitleAlign: 'center',
-                      animation: 'slide_from_right',
-                      contentStyle: {
-                        backgroundColor: '#F4EDD3',
-                      },
+                      // This ensures routes don't show as titles
+                      headerTitle: 'Abhinavam',
                     }}
+
                 >
 
 

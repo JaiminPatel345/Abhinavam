@@ -16,7 +16,6 @@ const useAuth = () => {
     dispatch(clearNotification())
 
     if (userData && userData.accessToken && userData.accessToken.length > 0) {
-      console.log("problem")
       dispatch(
           showNotification({
             message: 'if you want to login with another account, please logout first',

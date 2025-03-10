@@ -1,12 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+export interface NotificationState {
+  message: string | null;
+  type: 'SUCCESS' | 'DANGER' | 'INFO' | 'WARNING' | null ;
+  title: string | null;
+}
+
+const initialState: NotificationState = {
+  message: null,
+  type: 'INFO',
+  title: null,
+};
+
 const notificationSlice = createSlice({
   name: 'notification',
-  initialState: {
-    message: null,
-    type: null,
-    title: null,
-  },
+  initialState,
   reducers: {
     showNotification: (state, action) => {
       const { message, type, title } = action.payload;

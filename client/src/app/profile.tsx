@@ -13,7 +13,7 @@ import useAuth from "@/hooks/useAuth";
 import useUser from "@/hooks/useUser";
 import {router} from "expo-router";
 import {Divider, Menu, Modal, Portal, TextInput} from "react-native-paper";
-import {clearAllPosts, updateToNextPage} from "@/redux/slice/postSlice";
+import {updateToNextPage} from "@/redux/slice/postSlice";
 import usePost from "@/hooks/usePost";
 import {
   Edit2,
@@ -25,7 +25,7 @@ import {
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Progress from 'react-native-progress';
-import {setIsImageUploading} from "@/redux/slice/userSlice";
+import {clearUserFollowers, setIsImageUploading} from "@/redux/slice/userSlice";
 import {showNotification} from "@/redux/slice/notificationSlice";
 import SelectPicker from '@/app/auth/signup/SelectPicker';
 import INTERESTS from '@/utils/userUtils/interested';
@@ -34,6 +34,8 @@ import {IPost} from "@/types/posts.types";
 import {ICompleteProfilePayload} from "@/types/user.types";
 import ProfileComponent from '@/components/ui/ProfileComponent';
 import {setCurrentRoute} from "@/redux/slice/navigationSlice";
+import {StatusBar} from 'expo-status-bar';
+import {fetchMyData} from "@/redux/thunks/userThunk";
 
 export default function ProfileScreen() {
   // State and hooks
@@ -57,12 +59,12 @@ export default function ProfileScreen() {
   const {logoutUser} = useAuth();
   const {fetchPosts} = usePost();
   const {uploadUserAvatar, updateUserProfile} = useUser();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
 
   // Selectors
   const user = useSelector((state: RootState) => state.user.user);
   const allPosts = useSelector((state: RootState) => state.posts.posts);
-  const isLoading = useSelector((state: RootState) => state.posts.isLoading);
+  const isLoading = useSelector((state: RootState) => state.user.isLoading);
   const isImageUploading = useSelector((state: RootState) => state.user.isImageUploading);
 
   useEffect(() => {
@@ -80,7 +82,6 @@ export default function ProfileScreen() {
   // Initialize state values from user data
   useEffect(() => {
     if (user) {
-      console.log("user is logged in")
       setTagline(user.tagline || '');
       setAbout(user.about || '');
       setSelectedInterests(user.interests || []);
@@ -106,26 +107,28 @@ export default function ProfileScreen() {
   }, [allPosts, user]);
 
   // Handlers
-  const handleRefresh = () => {
-    dispatch(clearAllPosts());
+  const handleRefresh = useCallback(() => {
+    dispatch(fetchMyData())
+    dispatch(clearUserFollowers());
     setPage(1);
     if (user) {
-      fetchPosts({username: user.username, page: 1, limit});
+      return fetchPosts({username: user.username, page: 1, limit});
     }
-  };
+  }, [user, fetchPosts, dispatch, limit]);
 
-  const fetchNewPosts = () => {
+  const fetchNewPosts = useCallback(() => {
     if (user) {
       const nextPage = page + 1;
       setPage(nextPage);
       dispatch(updateToNextPage());
       fetchPosts({username: user.username, page: nextPage, limit});
     }
-  };
+  }, [user, page, fetchPosts, dispatch, limit]);
 
   const handleLogout = () => {
     logoutUser();
     setMenuVisible(false);
+    router.replace('/auth/login')
   };
 
   const handlePhotoUpload = async () => {
@@ -198,329 +201,269 @@ export default function ProfileScreen() {
   // Loading state
   if (!user) {
     return (
-        <View style={styles.loadingContainer}>
-          <Progress.Circle size={50} indeterminate={true} color="#4C585B"/>
+        <View
+            className="flex-1 justify-center items-center bg-background-light">
+          <Progress.Circle size={50} indeterminate={true} color="#0095F6"/>
         </View>
     );
   }
 
   return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <TouchableOpacity onPress={() => setMenuVisible(true)}
-                            style={styles.menuButton}>
-            <MoreVertical size={24} color="#000000"/>
-          </TouchableOpacity>
-
-          <Menu
-              visible={menuVisible}
-              onDismiss={() => setMenuVisible(false)}
-              anchor={{x: 370, y: 55}}
-              contentStyle={styles.menuContent}
-          >
-            <Menu.Item
-                onPress={() => {
-                  setMenuVisible(false);
-                  router.push("/auth/signup/AdditionalDetails");
-                }}
-                title="Edit Profile"
-                leadingIcon={() => <Edit2 size={20} color="#4C585B"/>}
-            />
-            <Divider/>
-            <Menu.Item
-                onPress={handleLogout}
-                title="Logout"
-                leadingIcon={() => <LogOut size={20} color="#E53935"/>}
-                titleStyle={{color: '#E53935'}}
-            />
-          </Menu>
-        </View>
-
-        {/* Main profile content */}
-        <ProfileComponent
-            user={user}
-            userPosts={userPosts}
-            isLoading={isLoading}
-            isImageUploading={isImageUploading}
-            isOwnProfile={true}
-            onRefresh={handleRefresh}
-            fetchNewPosts={fetchNewPosts}
-            onEditAvatar={() => setImageOptionsVisible(true)}
-            onViewAvatar={() => {
-              setImageOptionsVisible(false);
-              setFullImageVisible(true);
-            }}
-            onEditTagline={() => setEditTaglineVisible(true)}
-            onEditAbout={() => setEditAboutVisible(true)}
-            onEditInterests={() => setEditingInterests(true)}
-            onEditProfessions={() => setEditingProfessions(true)}
-        />
-
-        {/* Image Options Modal */}
-        <Portal>
-          <Modal
-              visible={imageOptionsVisible}
-              onDismiss={() => setImageOptionsVisible(false)}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Profile Photo</Text>
-                <TouchableOpacity onPress={() => setImageOptionsVisible(false)}>
-                  <X size={24} color="#4C585B"/>
-                </TouchableOpacity>
-              </View>
-              <Divider/>
-              <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={handlePhotoUpload}
-              >
-                <ImageIcon size={20} color="#4C585B"/>
-                <Text style={styles.modalOptionText}>Change photo</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={() => {
-                    setImageOptionsVisible(false);
-                    setFullImageVisible(true);
-                  }}
-              >
-                <Eye size={20} color="#4C585B"/>
-                <Text style={styles.modalOptionText}>View photo</Text>
-              </TouchableOpacity>
-            </View>
-          </Modal>
-        </Portal>
-
-        {/* Full Image Modal */}
-        <Portal>
-          <Modal
-              visible={fullImageVisible}
-              onDismiss={() => setFullImageVisible(false)}
-          >
+      <>
+        <StatusBar style="dark"/>
+        <SafeAreaView className="flex-1 bg-background-light">
+          {/* Header */}
+          <View
+              className="w-full flex-row  items-center px-4 py-3 border-b border-instagram-separator">
+            <Text
+                className="text-lg font-semibold text-secondary">{user?.name || 'Profile'}</Text>
             <TouchableOpacity
-                style={styles.closeFullImage}
-                onPress={() => setFullImageVisible(false)}
+                onPress={() => setMenuVisible(true)}
+                className="p-1 absolute right-4"
             >
-              <X size={35} color="#FFFFFF"/>
+              <MoreVertical size={24} color="#262626"/>
             </TouchableOpacity>
-            <Image
-                source={{uri: user?.avatar?.url || 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png'}}
-                style={styles.fullImage}
-                resizeMode="contain"
-            />
-          </Modal>
-        </Portal>
 
-        {/* Edit Tagline Modal */}
-        <Portal>
-          <Modal
-              visible={editTaglineVisible}
-              onDismiss={() => setEditTaglineVisible(false)}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Edit Tagline</Text>
-                <TouchableOpacity onPress={() => setEditTaglineVisible(false)}>
-                  <X size={24} color="#4C585B"/>
-                </TouchableOpacity>
-              </View>
+            <Menu
+                visible={menuVisible}
+                onDismiss={() => setMenuVisible(false)}
+                anchor={{x: 370, y: 55}}
+                contentStyle={styles.menuContent}
+            >
+              <Menu.Item
+                  onPress={() => {
+                    setMenuVisible(false);
+                    router.push("/auth/signup/AdditionalDetails");
+                  }}
+                  title="Edit Profile"
+                  leadingIcon={() => <Edit2 size={20} color="#0095F6"/>}
+                  titleStyle={{fontFamily: 'Poppins-Medium'}}
+              />
               <Divider/>
-              <View style={styles.modalBody}>
-                <TextInput
-                    label="Tagline"
-                    defaultValue={tagline}
-                    onChangeText={setTagline}
-                    mode="outlined"
-                    style={styles.input}
-                    outlineColor="#A5BFCC"
-                    placeholderTextColor={'#6f8289'}
-                    activeOutlineColor="#4C585B"
-                />
+              <Menu.Item
+                  onPress={handleLogout}
+                  title="Logout"
+                  leadingIcon={() => <LogOut size={20} color="#ED4956"/>}
+                  titleStyle={{color: '#ED4956', fontFamily: 'Poppins-Medium'}}
+              />
+            </Menu>
+          </View>
+
+          {/* Main profile content */}
+          <ProfileComponent
+              user={user}
+              userPosts={userPosts}
+              isLoading={isLoading}
+              isImageUploading={isImageUploading}
+              isOwnProfile={true}
+              onRefresh={handleRefresh}
+              fetchNewPosts={fetchNewPosts}
+              onEditAvatar={() => setImageOptionsVisible(true)}
+              onViewAvatar={() => {
+                setImageOptionsVisible(false);
+                setFullImageVisible(true);
+              }}
+              onEditTagline={() => setEditTaglineVisible(true)}
+              onEditAbout={() => setEditAboutVisible(true)}
+              onEditInterests={() => setEditingInterests(true)}
+              onEditProfessions={() => setEditingProfessions(true)}
+          />
+
+          {/* Image Options Modal */}
+          <Portal>
+            <Modal
+                visible={imageOptionsVisible}
+                onDismiss={() => setImageOptionsVisible(false)}
+                contentContainerStyle={styles.instagramModal}
+            >
+              <View>
+                <View
+                    className="flex-row justify-between items-center p-4 border-b border-instagram-separator">
+                  <Text className="text-base font-semibold text-secondary">Profile
+                    Photo</Text>
+                  <TouchableOpacity
+                      onPress={() => setImageOptionsVisible(false)}>
+                    <X size={24} color="#262626"/>
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
-                    style={styles.saveButton}
-                    onPress={saveTagline}
+                    className="flex-row items-center p-4 border-b border-instagram-separator"
+                    onPress={handlePhotoUpload}
                 >
-                  <Text style={styles.saveButtonText}>Save</Text>
+                  <ImageIcon size={20} color="#0095F6"/>
+                  <Text className="ml-3 text-sm text-secondary font-medium">Change
+                    photo</Text>
                 </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        </Portal>
-
-        {/* Edit About Modal */}
-        <Portal>
-          <Modal
-              visible={editAboutVisible}
-              onDismiss={() => setEditAboutVisible(false)}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Edit About</Text>
-                <TouchableOpacity onPress={() => setEditAboutVisible(false)}>
-                  <X size={24} color="#4C585B"/>
-                </TouchableOpacity>
-              </View>
-              <Divider/>
-              <View style={styles.modalBody}>
-                <TextInput
-                    label="About"
-                    defaultValue={about}
-                    onChangeText={setAbout}
-                    mode="outlined"
-                    multiline
-                    numberOfLines={4}
-                    style={styles.input}
-                    outlineColor="#A5BFCC"
-                    placeholderTextColor={'#6f8289'}
-                    activeOutlineColor="#4C585B"
-                />
                 <TouchableOpacity
-                    style={styles.saveButton}
-                    onPress={saveAbout}
+                    className="flex-row items-center p-4"
+                    onPress={() => {
+                      setImageOptionsVisible(false);
+                      setFullImageVisible(true);
+                    }}
                 >
-                  <Text style={styles.saveButtonText}>Save</Text>
+                  <Eye size={20} color="#0095F6"/>
+                  <Text className="ml-3 text-sm text-secondary font-medium">View
+                    photo</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </Modal>
-        </Portal>
+            </Modal>
+          </Portal>
 
-        {/* Interests Selection */}
-        <SelectPicker
-            visible={editingInterests}
-            onDismiss={() => {
-              setEditingInterests(false);
-              setSearchInterest('');
-            }}
-            title="Interests"
-            items={INTERESTS}
-            searchValue={searchInterest}
-            onSearchChange={setSearchInterest}
-            selectedItems={selectedInterests}
-            onItemSelect={handleInterestSelect}
-            onSave={saveInterests}
-        />
+          {/* Full Image Modal */}
+          <Portal>
+            <Modal
+                visible={fullImageVisible}
+                onDismiss={() => setFullImageVisible(false)}
+                contentContainerStyle={styles.fullScreenModal}
+            >
+              <TouchableOpacity
+                  className="absolute top-10 right-6 z-10 bg-black bg-opacity-50 rounded-full p-2"
+                  onPress={() => setFullImageVisible(false)}
+              >
+                <X size={28} color="#FFFFFF"/>
+              </TouchableOpacity>
+              <Image
+                  source={{uri: user?.avatar?.url || 'https://cdn.pixabay.com/photo/2017/11/10/05/48/user-2935527_1280.png'}}
+                  className="w-full h-full"
+                  resizeMode="contain"
+              />
+            </Modal>
+          </Portal>
 
-        {/* Professions Selection */}
-        <SelectPicker
-            visible={editingProfessions}
-            onDismiss={() => {
-              setEditingProfessions(false);
-              setSearchProfession('');
-            }}
-            title="Professions"
-            items={PROFESSIONS}
-            searchValue={searchProfession}
-            onSearchChange={setSearchProfession}
-            selectedItems={selectedProfessions}
-            onItemSelect={handleProfessionSelect}
-            onSave={saveProfessions}
-        />
-      </SafeAreaView>
+          {/* Edit Tagline Modal */}
+          <Portal>
+            <Modal
+                visible={editTaglineVisible}
+                onDismiss={() => setEditTaglineVisible(false)}
+                contentContainerStyle={styles.instagramModal}
+            >
+              <View>
+                <View
+                    className="flex-row justify-between items-center p-4 border-b border-instagram-separator">
+                  <Text className="text-base font-semibold text-secondary">Edit
+                    Tagline</Text>
+                  <TouchableOpacity
+                      onPress={() => setEditTaglineVisible(false)}>
+                    <X size={24} color="#262626"/>
+                  </TouchableOpacity>
+                </View>
+                <View className="p-4">
+                  <TextInput
+                      label="Tagline"
+                      value={tagline}
+                      onChangeText={setTagline}
+                      mode="outlined"
+                      className="mb-4"
+                      outlineColor="#DBDBDB"
+                      placeholderTextColor="#8E8E8E"
+                      activeOutlineColor="#0095F6"
+                      style={{fontFamily: 'Poppins-Regular'}}
+                  />
+                  <TouchableOpacity
+                      className="bg-primary rounded-lg py-3 items-center"
+                      onPress={saveTagline}
+                  >
+                    <Text
+                        className="font-semibold text-white text-sm">Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </Portal>
+
+          {/* Edit About Modal */}
+          <Portal>
+            <Modal
+                visible={editAboutVisible}
+                onDismiss={() => setEditAboutVisible(false)}
+                contentContainerStyle={styles.instagramModal}
+            >
+              <View>
+                <View
+                    className="flex-row justify-between items-center p-4 border-b border-instagram-separator">
+                  <Text className="text-base font-semibold text-secondary">Edit
+                    About</Text>
+                  <TouchableOpacity onPress={() => setEditAboutVisible(false)}>
+                    <X size={24} color="#262626"/>
+                  </TouchableOpacity>
+                </View>
+                <View className="p-4">
+                  <TextInput
+                      label="About"
+                      value={about}
+                      onChangeText={setAbout}
+                      mode="outlined"
+                      multiline
+                      numberOfLines={4}
+                      className="mb-4"
+                      outlineColor="#DBDBDB"
+                      placeholderTextColor="#8E8E8E"
+                      activeOutlineColor="#0095F6"
+                      style={{fontFamily: 'Poppins-Regular'}}
+                  />
+                  <TouchableOpacity
+                      className="bg-primary rounded-lg py-3 items-center"
+                      onPress={saveAbout}
+                  >
+                    <Text
+                        className="font-semibold text-white text-sm">Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          </Portal>
+
+          {/* Interests and Professions Selectors */}
+          <SelectPicker
+              visible={editingInterests}
+              onDismiss={() => {
+                setEditingInterests(false);
+                setSearchInterest('');
+              }}
+              title="Interests"
+              items={INTERESTS}
+              searchValue={searchInterest}
+              onSearchChange={setSearchInterest}
+              selectedItems={selectedInterests}
+              onItemSelect={handleInterestSelect}
+              onSave={saveInterests}
+          />
+
+          <SelectPicker
+              visible={editingProfessions}
+              onDismiss={() => {
+                setEditingProfessions(false);
+                setSearchProfession('');
+              }}
+              title="Professions"
+              items={PROFESSIONS}
+              searchValue={searchProfession}
+              onSearchChange={setSearchProfession}
+              selectedItems={selectedProfessions}
+              onItemSelect={handleProfessionSelect}
+              onSave={saveProfessions}
+          />
+        </SafeAreaView>
+      </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-  },
-  header: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#343A40',
-  },
-  menuButton: {
-    position: 'absolute',
-    padding: 4,
-    right: 10,
-  },
   menuContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 8,
+    backgroundColor: '#FFFFFF',
     elevation: 4,
   },
-  modalContent: {
-    backgroundColor: 'white',
-    margin: 20,
+  instagramModal: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
     borderRadius: 12,
     overflow: 'hidden',
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#343A40',
-  },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-  },
-  modalOptionText: {
-    marginLeft: 12,
-    fontSize: 14,
-    color: '#495057',
-  },
-  fullImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#212529'
-  },
-  closeFullImage: {
-    position: 'absolute',
-    top: 40,
-    right: 40,
-    zIndex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 20,
-    padding: 8,
-  },
-  modalBody: {
-    padding: 16,
-  },
-  input: {
-    backgroundColor: '#F8F9FA',
-    marginBottom: 16,
-  },
-  saveButton: {
-    backgroundColor: '#5C7AEA',
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
+  fullScreenModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    margin: 0,
   },
 });

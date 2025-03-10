@@ -1,10 +1,11 @@
 // components/profile/UserListComponent.tsx
 import React from 'react';
 import {
-  View,
-  Text,
+  ActivityIndicator,
   Image,
-  TouchableOpacity
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import styles from "@css/styles/profileStyles"
 
@@ -22,45 +23,62 @@ interface UserRelation {
 interface UserListComponentProps {
   user: UserRelation;
   isCurrentUser: boolean;
-  onFollowToggle: (username: string) => void;
+  onFollowToggle: (userId: string) => void;
   onUserPress: (username: string) => void;
+  isCurrUserFollowing: boolean;
+  toggleLoading: boolean;
 }
 
 const UserListComponent: React.FC<UserListComponentProps> = ({
-  user,
-  isCurrentUser,
-  onFollowToggle,
-  onUserPress
-}) => {
+                                                               user,
+                                                               isCurrentUser,
+                                                               onFollowToggle,
+                                                               onUserPress,
+                                                               isCurrUserFollowing,
+                                                               toggleLoading,
+
+                                                             }) => {
   return (
-    <TouchableOpacity
-      style={styles.userItem}
-      onPress={() => onUserPress(user.username)}
-    >
-      {/* Avatar */}
-      <Image
-        source={{ uri: user.avatar?.url || 'default-avatar-url' }}
-        style={styles.avatar}
-      />
+      <TouchableOpacity
+          style={styles.userItem}
+          onPress={() => onUserPress(user.username)}
+      >
+        {/* Avatar */}
+        <Image
+            source={{uri: user.avatar?.url || 'default-avatar-url'}}
+            style={styles.avatar}
+        />
 
-      {/* User Info */}
-      <View style={styles.userInfo}>
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.username}>@{user.username}</Text>
-      </View>
+        {/* User Info */}
+        <View style={styles.userInfo}>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.username}>@{user.username}</Text>
+        </View>
 
-      {/* Follow Button (if not current user) */}
-      {!isCurrentUser && (
-        <TouchableOpacity
-          style={styles.followButton}
-          onPress={() => onFollowToggle(user.username)}
-        >
-          <Text style={styles.followButtonText}>
-            Follow
-          </Text>
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
+        {/* Follow Button (if not current user) */}
+        {!isCurrentUser &&
+        toggleLoading ? (
+            <View
+                style={isCurrUserFollowing ? styles.unFollowButton : styles.followButton}
+            >
+              <ActivityIndicator size="small" color="#fff"/>
+            </View>
+        ) : (
+            <TouchableOpacity
+                style={isCurrUserFollowing ? styles.unFollowButton : styles.followButton}
+                onPress={() => onFollowToggle(user._id)}
+            >
+              {isCurrUserFollowing ? (
+                  <Text style={styles.followButtonText}>
+                    Unfollow
+                  </Text>
+              ) : (<Text style={styles.followButtonText}>
+                Follow
+              </Text>)}
+            </TouchableOpacity>
+        )
+        }
+      </TouchableOpacity>
   );
 };
 

@@ -46,8 +46,18 @@ export default StyleSheet.create({
     backgroundColor: '#007bff',
     borderRadius: 20
   },
+  unFollowButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: '#d43333',
+    borderRadius: 20
+  },
   followButtonText: {
     color: 'white',
+    fontWeight: 'bold'
+  },
+  unFollowButtonText: {
+    color: 'black',
     fontWeight: 'bold'
   }
 });

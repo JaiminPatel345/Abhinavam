@@ -45,7 +45,6 @@ export default function Posts() {
   }
   const postsArray: IPost[] = Object.values(posts);
 
-  console.log("came")
   return (
       <View className={'bg-background-light'}>
         <FlatList data={postsArray}
