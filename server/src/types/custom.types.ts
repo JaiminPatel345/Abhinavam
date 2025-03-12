@@ -1,5 +1,6 @@
 // types/custom.types.ts
 import { Request, Response } from 'express';
+import {TypedRequestWithParams} from "./request.types.js";
 
 export interface TypedRequestBody<T> extends Request {
   body: T;

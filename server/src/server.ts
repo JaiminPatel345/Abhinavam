@@ -13,10 +13,18 @@ import postRoute from "./routes/postRoute.js";
 import commentRoute from "./routes/commentRoute.js";
 import {formatResponse} from "./types/custom.types.js";
 import userRoute from "./routes/userRoute.js";
+import http from "http";
+import {initializeSocketServer} from "./services/socketServices.js";
+import chatRoute from "./routes/chatRoute.js";
 
 // Create Express app
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3003;
+
+//Socket
+const server = http.createServer(app);
+const io = initializeSocketServer(server);
+
 
 // Middleware
 app.use(express.json());
@@ -43,11 +51,12 @@ const startServer = async () => {
 
 
     // Routes
+    app.use('/chats', chatRoute)
     app.use('/comments', commentRoute);
     app.use('/posts', postRoute);
     app.use('/tokens', tokenRoute);
     app.use('/auth', authRouter);
-    app.use('/users',userRoute);
+    app.use('/users', userRoute);
 
     // Health check route
     app.get("/", (req: Request, res: Response) => {
@@ -109,4 +118,5 @@ process.on('uncaughtException', (error: Error) => {
   // process.exit(1);
 });
 
+export {server, io};
 export default app;
